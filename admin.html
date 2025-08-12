@@ -104,19 +104,19 @@
                         <!-- cartões de dias gerados via JS -->
                     </div>
 
-                    <div class="flex justify-between mt-8">
-                        <div class="space-x-4">
-                            <button id="selectAllBtn"
-                                class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors">Select
-                                All</button>
-                            <button id="deselectAllBtn"
-                                class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors">Deselect
-                                All</button>
-                        </div>
-                        <button id="saveHorariosBtn"
-                            class="bg-gold hover:bg-darkgold text-black font-semibold px-6 py-2 rounded-lg transition-colors">
-                            Save Changes
-                        </button>
+                    <div class="flex flex-col sm:flex-row sm:justify-between mt-8 gap-4">
+                      <div class="flex flex-col sm:flex-row gap-2 sm:space-x-4 sm:gap-0">
+                        <button id="selectAllBtn"
+                          class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors text-sm">Select
+                          All</button>
+                        <button id="deselectAllBtn"
+                          class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors text-sm">Deselect
+                          All</button>
+                      </div>
+                      <button id="saveHorariosBtn"
+                        class="bg-gold hover:bg-darkgold text-black font-semibold px-6 py-2 rounded-lg transition-colors text-sm">
+                        Save Changes
+                      </button>
                     </div>
 
                     <div id="saveMsg" class="mt-4 hidden"></div>
