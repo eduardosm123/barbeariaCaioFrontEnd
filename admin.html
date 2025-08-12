@@ -272,15 +272,6 @@
       headers['X-Session-Id'] = sessionId;
     }
     
-    // Se for atualização de horários, inclui credenciais no body
-    if (path === '/horarios' && storedCredentials.username && storedCredentials.password) {
-      data = {
-        ...data,
-        username: storedCredentials.username,
-        password: storedCredentials.password
-      };
-    }
-    
     const r = await fetch(`${API}${path}`, {
       method: 'PATCH',
       headers,
