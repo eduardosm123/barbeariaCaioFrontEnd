@@ -724,6 +724,214 @@
     input.setAttribute('type', tipo);
   });
 
+  // ---- Funções para Agendamentos ----
+  
+  async function carregarEMostrarAgendamentos() {
+    const container = document.getElementById('agendamentosLista');
+    const msg = document.getElementById('agendamentosMsg');
+    
+    try {
+      container.innerHTML = '<div class="text-center py-8 text-gray-400">Carregando agendamentos...</div>';
+      
+      const agendamentos = await carregarAgendamentos();
+      renderizarAgendamentos(agendamentos);
+      
+    } catch (error) {
+      console.error('Erro ao carregar agendamentos:', error);
+      container.innerHTML = '<div class="text-center py-8 text-red-400">Erro ao carregar agendamentos</div>';
+    }
+  }
+
+  function renderizarAgendamentos(agendamentos) {
+    const container = document.getElementById('agendamentosLista');
+    const filtroData = document.getElementById('filtroData').value;
+    const filtroStatus = document.getElementById('filtroStatus').value;
+    
+    // Aplicar filtros
+    let agendamentosFiltrados = agendamentos;
+    
+    if (filtroData) {
+      agendamentosFiltrados = agendamentosFiltrados.filter(ag => ag.data === filtroData);
+    }
+    
+    if (filtroStatus) {
+      agendamentosFiltrados = agendamentosFiltrados.filter(ag => ag.status === filtroStatus);
+    }
+    
+    if (agendamentosFiltrados.length === 0) {
+      container.innerHTML = '<div class="text-center py-8 text-gray-400">Nenhum agendamento encontrado</div>';
+      return;
+    }
+    
+    // Ordenar por data e horário
+    agendamentosFiltrados.sort((a, b) => {
+      const dataA = new Date(`${a.data}T${a.horario}`);
+      const dataB = new Date(`${b.data}T${b.horario}`);
+      return dataB - dataA; // Mais recentes primeiro
+    });
+    
+    container.innerHTML = agendamentosFiltrados.map(ag => criarCardAgendamento(ag)).join('');
+    adicionarEventListenersAgendamentos();
+  }
+
+  function criarCardAgendamento(agendamento) {
+    const dataFormatada = new Date(`${agendamento.data}T00:00:00`).toLocaleDateString('pt-BR');
+    const statusColors = {
+      'pendente': 'bg-yellow-900/50 border-yellow-500 text-yellow-200',
+      'confirmado': 'bg-green-900/50 border-green-500 text-green-200',
+      'cancelado': 'bg-red-900/50 border-red-500 text-red-200',
+      'finalizado': 'bg-blue-900/50 border-blue-500 text-blue-200'
+    };
+    
+    return `
+      <div class="bg-gray-700 rounded-lg p-4 border border-gray-600">
+        <div class="flex justify-between items-start mb-3">
+          <div>
+            <h3 class="font-semibold text-lg text-white">${agendamento.nome || 'Nome não informado'}</h3>
+            <p class="text-gray-300">📞 ${agendamento.telefone || 'Telefone não informado'}</p>
+          </div>
+          <div class="flex items-center space-x-2">
+            <span class="px-2 py-1 rounded text-xs font-medium ${statusColors[agendamento.status] || statusColors.pendente}">
+              ${agendamento.status || 'pendente'}
+            </span>
+          </div>
+        </div>
+        
+        <div class="space-y-2 text-sm text-gray-300 mb-4">
+          <p>✂️ <strong>Serviço:</strong> ${agendamento.servico || 'Serviço não informado'}</p>
+          <p>📅 <strong>Data:</strong> ${dataFormatada}</p>
+          <p>⏰ <strong>Horário:</strong> ${agendamento.horario || 'Horário não informado'}</p>
+          <p class="text-xs text-gray-400">ID: ${agendamento._id}</p>
+        </div>
+        
+        <div class="flex flex-wrap gap-2">
+          <select class="status-select bg-gray-600 text-white px-2 py-1 rounded text-sm" 
+                  data-agendamento-id="${agendamento._id}">
+            <option value="pendente" ${agendamento.status === 'pendente' ? 'selected' : ''}>Pendente</option>
+            <option value="confirmado" ${agendamento.status === 'confirmado' ? 'selected' : ''}>Confirmado</option>
+            <option value="cancelado" ${agendamento.status === 'cancelado' ? 'selected' : ''}>Cancelado</option>
+            <option value="finalizado" ${agendamento.status === 'finalizado' ? 'selected' : ''}>Finalizado</option>
+          </select>
+          
+          <button class="btn-atualizar bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm"
+                  data-agendamento-id="${agendamento._id}">
+            Atualizar
+          </button>
+          
+          <button class="btn-excluir bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm"
+                  data-agendamento-id="${agendamento._id}">
+            Excluir
+          </button>
+        </div>
+      </div>
+    `;
+  }
+
+  function adicionarEventListenersAgendamentos() {
+    // Botões de atualizar
+    document.querySelectorAll('.btn-atualizar').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        const agendamentoId = e.target.dataset.agendamentoId;
+        const selectStatus = document.querySelector(`.status-select[data-agendamento-id="${agendamentoId}"]`);
+        const novoStatus = selectStatus.value;
+        
+        if (!agendamentoId) {
+          console.error('ID do agendamento não encontrado');
+          return;
+        }
+        
+        const btn = e.target;
+        const originalText = btn.textContent;
+        btn.disabled = true;
+        btn.textContent = 'Atualizando...';
+        
+        try {
+          await atualizarAgendamento(agendamentoId, { status: novoStatus });
+          showMessage('agendamentosMsg', 'success', 'Status atualizado com sucesso!');
+          
+          // Recarrega a lista
+          setTimeout(() => carregarEMostrarAgendamentos(), 1000);
+          
+        } catch (error) {
+          console.error('Erro ao atualizar status:', error);
+          showMessage('agendamentosMsg', 'error', `Erro ao atualizar: ${error.message}`);
+        } finally {
+          btn.disabled = false;
+          btn.textContent = originalText;
+        }
+      });
+    });
+    
+    // Botões de excluir
+    document.querySelectorAll('.btn-excluir').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        const agendamentoId = e.target.dataset.agendamentoId;
+        
+        if (!agendamentoId) {
+          console.error('ID do agendamento não encontrado');
+          return;
+        }
+        
+        if (!confirm('Tem certeza que deseja excluir este agendamento?')) {
+          return;
+        }
+        
+        const btn = e.target;
+        const originalText = btn.textContent;
+        btn.disabled = true;
+        btn.textContent = 'Excluindo...';
+        
+        try {
+          await excluirAgendamento(agendamentoId);
+          showMessage('agendamentosMsg', 'success', 'Agendamento excluído com sucesso!');
+          
+          // Recarrega a lista
+          setTimeout(() => carregarEMostrarAgendamentos(), 1000);
+          
+        } catch (error) {
+          console.error('Erro ao excluir agendamento:', error);
+          showMessage('agendamentosMsg', 'error', `Erro ao excluir: ${error.message}`);
+        } finally {
+          btn.disabled = false;
+          btn.textContent = originalText;
+        }
+      });
+    });
+  }
+
+  function showMessage(elementId, type, text) {
+    const el = document.getElementById(elementId);
+    el.textContent = text;
+    el.className = `mt-4 p-3 rounded-lg ${type === 'error' 
+      ? 'bg-red-900/50 border border-red-500 text-red-200'
+      : 'bg-green-900/50 border border-green-500 text-green-200'}`;
+    el.classList.remove('hidden');
+    setTimeout(() => el.classList.add('hidden'), 5000);
+  }
+
+  // Event Listeners para filtros e recarregar
+  document.getElementById('recarregarAgendamentos')?.addEventListener('click', carregarEMostrarAgendamentos);
+  
+  document.getElementById('filtroData')?.addEventListener('change', () => {
+    if (database.agendamentos && database.agendamentos.length > 0) {
+      renderizarAgendamentos(database.agendamentos);
+    }
+  });
+  
+  document.getElementById('filtroStatus')?.addEventListener('change', () => {
+    if (database.agendamentos && database.agendamentos.length > 0) {
+      renderizarAgendamentos(database.agendamentos);
+    }
+  });
+  
+  document.getElementById('limparFiltros')?.addEventListener('click', () => {
+    document.getElementById('filtroData').value = '';
+    document.getElementById('filtroStatus').value = '';
+    if (database.agendamentos && database.agendamentos.length > 0) {
+      renderizarAgendamentos(database.agendamentos);
+    }
+  });
+
   // ---- GESTÃO DE AGENDAMENTOS ----
 
   function formatarData(dataStr) {
