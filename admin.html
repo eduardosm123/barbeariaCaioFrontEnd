@@ -743,7 +743,7 @@
   function criarCardAgendamento(agendamento) {
     const statusInfo = formatarStatus(agendamento.status);
     return `
-      <div class="bg-gray-700 rounded-lg p-4 border border-gray-600" data-agendamento-id="${agendamento._id}">
+      <div class="bg-gray-700 rounded-lg p-4 border border-gray-600" data-agendamento-id="${agendamento.id}">
         <div class="flex justify-between items-start mb-3">
           <div>
             <h3 class="font-semibold text-lg text-white">${agendamento.nome}</h3>
@@ -775,7 +775,7 @@
 
         <div class="flex flex-wrap gap-2">
           <select class="status-select px-2 py-1 bg-gray-600 border border-gray-500 rounded text-white text-sm" 
-                  data-agendamento-id="${agendamento._id}">
+                  data-agendamento-id="${agendamento.id}">
             <option value="pendente" ${agendamento.status === 'pendente' ? 'selected' : ''}>Pendente</option>
             <option value="confirmado" ${agendamento.status === 'confirmado' ? 'selected' : ''}>Confirmado</option>
             <option value="cancelado" ${agendamento.status === 'cancelado' ? 'selected' : ''}>Cancelado</option>
@@ -783,12 +783,12 @@
           </select>
           
           <button class="salvar-status-btn bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-sm transition-colors"
-                  data-agendamento-id="${agendamento._id}">
+                  data-agendamento-id="${agendamento.id}">
             💾 Salvar
           </button>
           
           <button class="excluir-agendamento-btn bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm transition-colors"
-                  data-agendamento-id="${agendamento._id}">
+                  data-agendamento-id="${agendamento.id}">
             🗑️ Excluir
           </button>
         </div>
