@@ -311,24 +311,29 @@
         if (savedToken) {
           authToken = savedToken;
 
-          // Verifica se o token ainda é válido testando uma rota protegida
+          // Verifica se o token ainda é válido usando a rota de verificação
           try {
-            // Tenta buscar lista de admins primeiro
-            let adminData;
-            try {
-              const admins = await apiGet('/admin');
-              adminData = admins && admins.length > 0 ? admins[0] : null;
-            } catch (err) {
-              // Se não conseguir buscar lista, tenta buscar horários para validar token
-              await apiGet('/horarios'); // Se essa funcionar, o token é válido
-              adminData = { id: 1, username: 'admin', nome: 'Admin' };
-            }
+            const verifyResponse = await fetch(`${API}/auth/verify`, {
+              headers: { 'Authorization': `Bearer ${authToken}` }
+            });
             
-            if (adminData) {
-              database.admin = adminData;
-              sessionStorage.setItem('adminLoggedIn', 'true');
+            if (verifyResponse.ok) {
+              // Token válido, busca dados do admin
+              try {
+                const admins = await apiGet('/admin');
+                if (admins && admins.length > 0) {
+                  database.admin = admins[0];
+                } else {
+                  database.admin = { id: 1, username: 'admin', nome: 'Admin' };
+                }
+                sessionStorage.setItem('adminLoggedIn', 'true');
+              } catch (err) {
+                console.warn('Erro ao buscar dados do admin:', err);
+                database.admin = { id: 1, username: 'admin', nome: 'Admin' };
+                sessionStorage.setItem('adminLoggedIn', 'true');
+              }
             } else {
-              throw new Error('Dados do admin não encontrados');
+              throw new Error('Token inválido');
             }
           } catch (err) {
             console.warn('Token inválido:', err);
@@ -352,7 +357,7 @@
 
         // Se já estava logado e token é válido, vai para o dashboard
         if (sessionStorage.getItem('adminLoggedIn') && authToken && database.admin) {
-          document.getElementById('adminName').textContent = database.admin.nome || database.admin.username || 'Admin';
+          document.getElementById('adminName').textContent = database.admin.username || 'Admin';
           showDashboard();
         }
 
@@ -386,31 +391,26 @@
       loginBtn.textContent = 'Logging in...';
 
       try {
-        // Como não há rota de login específica, vamos simular a autenticação
-        // e gerar um token válido para as rotas que exigem autenticação
-        if (username === 'admin' && password === 'admin123') {
-          // Gera um token simulado (em produção, isso viria do backend)
-          authToken = `admin-token-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-        } else {
-          throw new Error('Credenciais inválidas');
+        // Faz login via API real
+        const loginData = await fetch(`${API}/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password })
+        });
+
+        if (!loginData.ok) {
+          const errorData = await loginData.json().catch(() => ({}));
+          throw new Error(errorData.message || 'Credenciais inválidas');
         }
-        // Salva o token
+
+        const response = await loginData.json();
+        
+        // Salva o token retornado pelo backend
+        authToken = response.token;
         localStorage.setItem('adminToken', authToken);
 
-        // Busca dados do admin usando o token - tenta diferentes IDs ou usa dados básicos
-        try {
-          // Primeiro tenta buscar lista de admins
-          const adminsData = await apiGet('/admin');
-          if (adminsData && adminsData.length > 0) {
-            database.admin = adminsData[0]; // Usa o primeiro admin
-          } else {
-            throw new Error('Nenhum admin encontrado');
-          }
-        } catch (err) {
-          console.warn('Não foi possível buscar dados do admin:', err);
-          // Se não conseguir buscar dados do admin, usa dados básicos
-          database.admin = { id: 1, username: username, nome: username };
-        }
+        // Usa os dados do admin retornados pelo login
+        database.admin = response.admin;
 
         // Carrega os horários mais recentes
         try {
@@ -422,7 +422,7 @@
         }
 
         sessionStorage.setItem('adminLoggedIn', 'true');
-        document.getElementById('adminName').textContent = database.admin.nome || database.admin.username || 'Admin';
+        document.getElementById('adminName').textContent = database.admin.username || 'Admin';
         loginError.classList.add('hidden');
         showDashboard();
       } catch (err) {
@@ -437,11 +437,26 @@
 
     // Logout
     logoutBtn.addEventListener('click', async () => {
-      // Simplesmente limpa o estado local (não há rota de logout no backend)
-      authToken = null;
-      localStorage.removeItem('adminToken');
-      sessionStorage.removeItem('adminLoggedIn');
-      window.location.href = 'index.html';
+      try {
+        // Chama a rota de logout no backend
+        if (authToken) {
+          await fetch(`${API}/auth/logout`, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${authToken}`,
+              'Content-Type': 'application/json'
+            }
+          }).catch(() => {}); // Ignora erros de logout no servidor
+        }
+      } catch (err) {
+        console.warn('Erro no logout do servidor:', err);
+      } finally {
+        // Sempre limpa o estado local
+        authToken = null;
+        localStorage.removeItem('adminToken');
+        sessionStorage.removeItem('adminLoggedIn');
+        window.location.href = 'index.html';
+      }
     });
 
     function showDashboard() {
