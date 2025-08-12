@@ -126,7 +126,9 @@
         <div class="bg-white dark:bg-gray-700 p-8 rounded-xl shadow-lg hover:shadow-xl transition-shadow">
           <div class="w-20 h-20 bg-gold/10 rounded-full flex items-center justify-center mb-6">
             <svg class="w-10 h-10 text-gold" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+              <path fill-rule="evenodd"
+                d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                clip-rule="evenodd"></path>
             </svg>
           </div>
           <h3 class="text-xl font-semibold mb-4">Skincare</h3>
@@ -667,7 +669,7 @@
           <label for="telefone" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Telefone</label>
           <input type="tel" id="telefone" name="telefone" required inputmode="tel"
             class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-gold focus:border-transparent dark:bg-gray-700 dark:text-white"
-            placeholder="(00) 00000-0000">
+            placeholder="(00) 00000-0000" pattern="^\(\d{2}\) \d{4,5}-\d{4}$">
         </div>
 
         <!-- Serviço -->
@@ -769,6 +771,41 @@
     // -----------------------
     // Constantes WhatsApp + helper
     // -----------------------
+
+
+    const tel = document.getElementById('telefone');
+
+    function formatBRPhone(value) {
+      const d = value.replace(/\D/g, '').slice(0, 11); // só números, no máx 11
+      const len = d.length;
+
+      if (!len) return '';
+
+      if (len <= 2) {
+        return `(${d}`;
+      } else if (len <= 6) {
+        return `(${d.slice(0, 2)}) ${d.slice(2)}`;
+      } else if (len <= 10) {
+        return `(${d.slice(0, 2)}) ${d.slice(2, 6)}-${d.slice(6)}`;
+      } else {
+        // 11 dígitos (celular)
+        return `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7, 11)}`;
+      }
+    }
+
+    tel.addEventListener('input', (e) => {
+      const cursorEnd = e.target.selectionEnd;
+      const before = e.target.value;
+      e.target.value = formatBRPhone(before);
+      // comportamento simples: mantém o cursor no fim (ok para a maioria dos casos)
+      e.target.setSelectionRange(e.target.value.length, e.target.value.length);
+    });
+
+    // mensagem de validação amigável
+    tel.addEventListener('blur', (e) => {
+      const ok = /^\(\d{2}\) \d{4,5}-\d{4}$/.test(e.target.value);
+      e.target.setCustomValidity(ok || e.target.value === '' ? '' : 'Digite um telefone válido: (11) 91234-5678');
+    });
     const WA_PHONE = '5545991321488';
     function enviarWhatsApp(mensagem) {
       const msg = encodeURIComponent(mensagem);
