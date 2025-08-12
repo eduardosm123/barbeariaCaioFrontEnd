@@ -838,6 +838,7 @@
     };
 
     let horariosCache = null;
+    let agendamentosCache = null;
 
     async function carregarHorariosDisponiveis() {
       if (horariosCache) return horariosCache;
@@ -881,6 +882,50 @@
           segunda: [], terca: [], quarta: [], quinta: [], sexta: [], sabado: [], domingo: []
         };
         return horariosCache;
+      }
+    }
+
+    async function carregarAgendamentosPorData(data) {
+      console.log('🔄 Carregando agendamentos para data:', data);
+      
+      try {
+        const r = await fetch(`${API_BASE}/agendamentos/data/${data}`, {
+          cache: 'no-store'
+        });
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        const agendamentos = await r.json();
+        
+        console.log('✅ Agendamentos carregados:', agendamentos);
+        return agendamentos;
+      } catch (error) {
+        console.warn('⚠️ Erro ao carregar agendamentos:', error);
+        return [];
+      }
+    }
+
+    async function criarAgendamento(dadosAgendamento) {
+      console.log('📝 Criando agendamento:', dadosAgendamento);
+      
+      try {
+        const r = await fetch(`${API_BASE}/agendamentos`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(dadosAgendamento)
+        });
+        
+        if (!r.ok) {
+          const error = await r.json();
+          throw new Error(error.message || `HTTP ${r.status}`);
+        }
+        
+        const agendamento = await r.json();
+        console.log('✅ Agendamento criado:', agendamento);
+        return agendamento;
+      } catch (error) {
+        console.error('❌ Erro ao criar agendamento:', error);
+        throw error;
       }
     }
 
@@ -944,6 +989,11 @@
       const horariosDisponiveis = await carregarHorariosDisponiveis();
       console.log('⏰ Horários disponíveis para', diaChave, ':', horariosDisponiveis[diaChave]);
 
+      // Carregar agendamentos já marcados para esta data
+      const agendamentosExistentes = await carregarAgendamentosPorData(dataSelecionada);
+      const horariosOcupados = new Set(agendamentosExistentes.map(ag => ag.horario));
+      console.log('🚫 Horários já ocupados:', Array.from(horariosOcupados));
+
       // Limpar e popular o select
       horarioSelect.innerHTML = '<option value="">Selecione um horário</option>';
 
@@ -960,7 +1010,13 @@
           horarios.forEach(h => {
             const opt = document.createElement('option');
             opt.value = h;
-            opt.textContent = h;
+            if (horariosOcupados.has(h)) {
+              opt.textContent = `${h} (Ocupado)`;
+              opt.disabled = true;
+              opt.style.color = '#999';
+            } else {
+              opt.textContent = h;
+            }
             horarioSelect.appendChild(opt);
           });
         }
@@ -1009,8 +1065,8 @@
       if (e.key === 'Escape' && !modal.classList.contains('hidden')) fecharModal();
     });
 
-    // Submeter formulário -> Enviar via WhatsApp + salvar em localStorage
-    agendamentoForm.addEventListener('submit', (e) => {
+    // Submeter formulário -> Enviar para backend + WhatsApp
+    agendamentoForm.addEventListener('submit', async (e) => {
       e.preventDefault();
 
       const nome = document.getElementById('nome').value.trim();
@@ -1027,39 +1083,66 @@
       const servicosSelecionados = servicosEls.map(el => el.value);
       const totalMinutos = servicosEls.reduce((acc, el) => acc + parseInt(el.dataset.minutos || '0', 10), 0);
 
-      const dataFormatada = new Date(`${data}T00:00:00`).toLocaleDateString('pt-BR');
+      const submitBtn = document.getElementById('agendarBtn') || e.target.querySelector('button[type="submit"]');
+      const originalText = submitBtn.textContent;
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Enviando...';
 
-      // Persiste para a área admin (localStorage) mantendo compatibilidade
-      const dadosAgendamento = {
-        nome,
-        telefone,
-        servicos: servicosSelecionados,            // novo (array)
-        servico: servicosSelecionados.join(', '),  // compat
-        data,
-        horario,
-        totalMinutos
-      };
-      let database = JSON.parse(localStorage.getItem('barbeariaAdmin')) || {};
-      database.agendamentos = database.agendamentos || [];
-      database.agendamentos.push({
-        ...dadosAgendamento,
-        timestamp: new Date().toISOString(),
-        id: Date.now()
-      });
-      localStorage.setItem('barbeariaAdmin', JSON.stringify(database));
+      try {
+        // Dados para o backend
+        const dadosAgendamento = {
+          nome,
+          telefone,
+          servico: servicosSelecionados.join(', '),
+          data,
+          horario
+        };
 
-      const mensagem =
-        `🏪 *AGENDAMENTO - BARBEARIA VIP*\n\n` +
-        `👤 *Nome:* ${nome}\n` +
-        `📞 *Telefone:* ${telefone}\n` +
-        `✂️ *Serviços:* ${servicosSelecionados.join(', ')}\n` +
-        `⏳ *Duração total estimada:* ${minutosParaTexto(totalMinutos)}\n` +
-        `📅 *Data:* ${dataFormatada}\n` +
-        `⏰ *Horário:* ${horario}\n\n` +
-        `Olá! Gostaria de agendar este horário. Obrigado!`;
+        // Envia para o backend
+        const agendamentoCriado = await criarAgendamento(dadosAgendamento);
+        console.log('✅ Agendamento salvo no backend:', agendamentoCriado);
 
-      enviarWhatsApp(mensagem);
-      fecharModal();
+        // Persiste para a área admin (localStorage) mantendo compatibilidade
+        const dadosCompletos = {
+          ...dadosAgendamento,
+          servicos: servicosSelecionados,
+          totalMinutos,
+          id: agendamentoCriado._id,
+          status: agendamentoCriado.status || 'pendente'
+        };
+        
+        let database = JSON.parse(localStorage.getItem('barbeariaAdmin')) || {};
+        database.agendamentos = database.agendamentos || [];
+        database.agendamentos.push({
+          ...dadosCompletos,
+          timestamp: new Date().toISOString()
+        });
+        localStorage.setItem('barbeariaAdmin', JSON.stringify(database));
+
+        const dataFormatada = new Date(`${data}T00:00:00`).toLocaleDateString('pt-BR');
+        const mensagem =
+          `🏪 *AGENDAMENTO - BARBEARIA VIP*\n\n` +
+          `👤 *Nome:* ${nome}\n` +
+          `📞 *Telefone:* ${telefone}\n` +
+          `✂️ *Serviços:* ${servicosSelecionados.join(', ')}\n` +
+          `⏳ *Duração total estimada:* ${minutosParaTexto(totalMinutos)}\n` +
+          `📅 *Data:* ${dataFormatada}\n` +
+          `⏰ *Horário:* ${horario}\n\n` +
+          `Olá! Gostaria de agendar este horário. Obrigado!`;
+
+        // Mostra mensagem de sucesso
+        alert('✅ Agendamento realizado com sucesso! Você será redirecionado para o WhatsApp.');
+        
+        enviarWhatsApp(mensagem);
+        fecharModal();
+
+      } catch (error) {
+        console.error('❌ Erro ao criar agendamento:', error);
+        alert(`❌ Erro ao agendar: ${error.message}`);
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = originalText;
+      }
     });
 
 

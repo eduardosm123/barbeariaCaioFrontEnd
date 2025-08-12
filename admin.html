@@ -85,6 +85,8 @@
             <div class="container mx-auto">
                 <div class="flex space-x-8">
                     <button class="tab-btn active px-4 py-3 text-white border-b-2 border-gold"
+                        data-tab="agendamentos">Agendamentos</button>
+                    <button class="tab-btn px-4 py-3 text-gray-400 hover:text-white border-b-2 border-transparent hover:border-gray-600"
                         data-tab="horarios">Manage Hours</button>
                     <button
                         class="tab-btn px-4 py-3 text-gray-400 hover:text-white border-b-2 border-transparent hover:border-gray-600"
@@ -95,8 +97,56 @@
 
         <!-- Content -->
         <main class="container mx-auto p-6">
+            <!-- Agendamentos -->
+            <div id="agendamentosTab" class="tab-content">
+                <div class="bg-gray-800 rounded-lg p-6">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-xl font-bold">Gerenciar Agendamentos</h2>
+                        <button id="recarregarAgendamentos"
+                            class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors text-sm">
+                            🔄 Recarregar
+                        </button>
+                    </div>
+
+                    <!-- Filtros -->
+                    <div class="grid md:grid-cols-3 gap-4 mb-6 p-4 bg-gray-700 rounded-lg">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-300 mb-2">Filtrar por Data</label>
+                            <input type="date" id="filtroData" 
+                                class="w-full px-3 py-2 bg-gray-600 border border-gray-500 rounded-lg focus:ring-2 focus:ring-gold focus:border-transparent text-white">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-300 mb-2">Filtrar por Status</label>
+                            <select id="filtroStatus" 
+                                class="w-full px-3 py-2 bg-gray-600 border border-gray-500 rounded-lg focus:ring-2 focus:ring-gold focus:border-transparent text-white">
+                                <option value="">Todos os status</option>
+                                <option value="pendente">Pendente</option>
+                                <option value="confirmado">Confirmado</option>
+                                <option value="cancelado">Cancelado</option>
+                                <option value="finalizado">Finalizado</option>
+                            </select>
+                        </div>
+                        <div class="flex items-end">
+                            <button id="limparFiltros"
+                                class="w-full bg-gray-600 hover:bg-gray-500 text-white px-4 py-2 rounded-lg transition-colors text-sm">
+                                Limpar Filtros
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Lista de Agendamentos -->
+                    <div id="agendamentosLista" class="space-y-4">
+                        <div class="text-center py-8 text-gray-400">
+                            Carregando agendamentos...
+                        </div>
+                    </div>
+
+                    <div id="agendamentosMsg" class="mt-4 hidden"></div>
+                </div>
+            </div>
+
             <!-- Horários -->
-            <div id="horariosTab" class="tab-content">
+            <div id="horariosTab" class="tab-content hidden">
                 <div class="bg-gray-800 rounded-lg p-6">
                     <h2 class="text-xl font-bold mb-6">Manage Available Hours</h2>
 
@@ -206,7 +256,8 @@
   // Estado
   let database = {
     admin: { id: 1, username: '', password: '', email: '' },
-    horarios: { segunda: [], terca: [], quarta: [], quinta: [], sexta: [], sabado: [], domingo: [] }
+    horarios: { segunda: [], terca: [], quarta: [], quinta: [], sexta: [], sabado: [], domingo: [] },
+    agendamentos: []
   };
   let bootDone = false;
   let sessionId = null; // Para gerenciar a sessão
@@ -295,6 +346,52 @@
     if (!r.ok) throw new Error(`POST ${path} -> ${r.status}`);
     return r.json();
   }
+  
+  async function apiDelete(path) {
+    const headers = { 'Content-Type': 'application/json' };
+    if (sessionId) {
+      headers['X-Session-Id'] = sessionId;
+    }
+    
+    const r = await fetch(`${API}${path}`, {
+      method: 'DELETE',
+      headers
+    });
+    if (!r.ok) throw new Error(`DELETE ${path} -> ${r.status}`);
+    return r.json();
+  }
+
+  // Funções específicas para agendamentos
+  async function carregarAgendamentos() {
+    try {
+      const agendamentos = await apiGet('/agendamentos');
+      database.agendamentos = agendamentos;
+      return agendamentos;
+    } catch (err) {
+      console.error('Erro ao carregar agendamentos:', err);
+      return [];
+    }
+  }
+
+  async function atualizarAgendamento(id, dadosAtualizados) {
+    try {
+      const agendamentoAtualizado = await apiPatch(`/agendamentos/${id}`, dadosAtualizados);
+      return agendamentoAtualizado;
+    } catch (err) {
+      console.error('Erro ao atualizar agendamento:', err);
+      throw err;
+    }
+  }
+
+  async function excluirAgendamento(id) {
+    try {
+      await apiDelete(`/agendamentos/${id}`);
+      return true;
+    } catch (err) {
+      console.error('Erro ao excluir agendamento:', err);
+      throw err;
+    }
+  }
 
   // Inicialização
   document.addEventListener('DOMContentLoaded', async () => {
@@ -346,6 +443,8 @@
       // Se já estava logado e sessão é válida, vai para o dashboard
       if (sessionStorage.getItem('adminLoggedIn') && sessionId) {
         showDashboard();
+        // Carrega agendamentos se já está logado
+        carregarEMostrarAgendamentos();
       }
 
       document.getElementById('loginBtn').disabled = false;
@@ -409,6 +508,9 @@
       document.getElementById('adminName').textContent = loginData.admin.username || 'Admin';
       loginError.classList.add('hidden');
       showDashboard();
+      
+      // Carrega agendamentos após login bem-sucedido
+      carregarEMostrarAgendamentos();
     } catch (err) {
       console.error('Erro no login:', err);
       loginError.classList.remove('hidden');
@@ -620,6 +722,201 @@
     const input = document.getElementById(id);
     const tipo = input.getAttribute('type') === 'password' ? 'text' : 'password';
     input.setAttribute('type', tipo);
+  });
+
+  // ---- GESTÃO DE AGENDAMENTOS ----
+
+  function formatarData(dataStr) {
+    return new Date(`${dataStr}T00:00:00`).toLocaleDateString('pt-BR');
+  }
+
+  function formatarStatus(status) {
+    const statusMap = {
+      'pendente': { text: 'Pendente', class: 'bg-yellow-900/50 border-yellow-500 text-yellow-200' },
+      'confirmado': { text: 'Confirmado', class: 'bg-green-900/50 border-green-500 text-green-200' },
+      'cancelado': { text: 'Cancelado', class: 'bg-red-900/50 border-red-500 text-red-200' },
+      'finalizado': { text: 'Finalizado', class: 'bg-blue-900/50 border-blue-500 text-blue-200' }
+    };
+    return statusMap[status] || { text: status, class: 'bg-gray-900/50 border-gray-500 text-gray-200' };
+  }
+
+  function criarCardAgendamento(agendamento) {
+    const statusInfo = formatarStatus(agendamento.status);
+    return `
+      <div class="bg-gray-700 rounded-lg p-4 border border-gray-600" data-agendamento-id="${agendamento._id}">
+        <div class="flex justify-between items-start mb-3">
+          <div>
+            <h3 class="font-semibold text-lg text-white">${agendamento.nome}</h3>
+            <p class="text-gray-300 text-sm">${agendamento.telefone}</p>
+          </div>
+          <span class="px-2 py-1 rounded-full text-xs border ${statusInfo.class}">
+            ${statusInfo.text}
+          </span>
+        </div>
+        
+        <div class="grid grid-cols-2 gap-4 mb-4 text-sm">
+          <div>
+            <span class="text-gray-400">Serviço:</span>
+            <p class="text-white font-medium">${agendamento.servico}</p>
+          </div>
+          <div>
+            <span class="text-gray-400">Data:</span>
+            <p class="text-white font-medium">${formatarData(agendamento.data)}</p>
+          </div>
+          <div>
+            <span class="text-gray-400">Horário:</span>
+            <p class="text-white font-medium">${agendamento.horario}</p>
+          </div>
+          <div>
+            <span class="text-gray-400">Criado em:</span>
+            <p class="text-white font-medium">${new Date(agendamento.createdAt).toLocaleDateString('pt-BR')}</p>
+          </div>
+        </div>
+
+        <div class="flex flex-wrap gap-2">
+          <select class="status-select px-2 py-1 bg-gray-600 border border-gray-500 rounded text-white text-sm" 
+                  data-agendamento-id="${agendamento._id}">
+            <option value="pendente" ${agendamento.status === 'pendente' ? 'selected' : ''}>Pendente</option>
+            <option value="confirmado" ${agendamento.status === 'confirmado' ? 'selected' : ''}>Confirmado</option>
+            <option value="cancelado" ${agendamento.status === 'cancelado' ? 'selected' : ''}>Cancelado</option>
+            <option value="finalizado" ${agendamento.status === 'finalizado' ? 'selected' : ''}>Finalizado</option>
+          </select>
+          
+          <button class="salvar-status-btn bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-sm transition-colors"
+                  data-agendamento-id="${agendamento._id}">
+            💾 Salvar
+          </button>
+          
+          <button class="excluir-agendamento-btn bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm transition-colors"
+                  data-agendamento-id="${agendamento._id}">
+            🗑️ Excluir
+          </button>
+        </div>
+      </div>
+    `;
+  }
+
+  async function carregarEMostrarAgendamentos() {
+    const lista = document.getElementById('agendamentosLista');
+    lista.innerHTML = '<div class="text-center py-8 text-gray-400">Carregando agendamentos...</div>';
+
+    try {
+      const agendamentos = await carregarAgendamentos();
+      mostrarAgendamentos(agendamentos);
+    } catch (err) {
+      lista.innerHTML = '<div class="text-center py-8 text-red-400">Erro ao carregar agendamentos</div>';
+    }
+  }
+
+  function mostrarAgendamentos(agendamentos) {
+    const lista = document.getElementById('agendamentosLista');
+    
+    if (!agendamentos || agendamentos.length === 0) {
+      lista.innerHTML = '<div class="text-center py-8 text-gray-400">Nenhum agendamento encontrado</div>';
+      return;
+    }
+
+    // Ordenar por data e horário
+    const agendamentosOrdenados = agendamentos.sort((a, b) => {
+      const dateA = new Date(a.data + 'T' + a.horario);
+      const dateB = new Date(b.data + 'T' + b.horario);
+      return dateB - dateA; // Mais recentes primeiro
+    });
+
+    lista.innerHTML = agendamentosOrdenados.map(agendamento => criarCardAgendamento(agendamento)).join('');
+    
+    // Adicionar event listeners
+    adicionarEventListenersAgendamentos();
+  }
+
+  function adicionarEventListenersAgendamentos() {
+    // Salvar status
+    document.querySelectorAll('.salvar-status-btn').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        const agendamentoId = e.target.dataset.agendamentoId;
+        const novoStatus = document.querySelector(`select.status-select[data-agendamento-id="${agendamentoId}"]`).value;
+        
+        btn.disabled = true;
+        const originalText = btn.textContent;
+        btn.textContent = '⏳ Salvando...';
+
+        try {
+          await atualizarAgendamento(agendamentoId, { status: novoStatus });
+          mostrarMensagem('Status atualizado com sucesso!', 'success');
+          carregarEMostrarAgendamentos(); // Recarrega a lista
+        } catch (err) {
+          mostrarMensagem('Erro ao atualizar status: ' + err.message, 'error');
+        } finally {
+          btn.disabled = false;
+          btn.textContent = originalText;
+        }
+      });
+    });
+
+    // Excluir agendamento
+    document.querySelectorAll('.excluir-agendamento-btn').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        const agendamentoId = e.target.dataset.agendamentoId;
+        
+        if (!confirm('Tem certeza que deseja excluir este agendamento?')) {
+          return;
+        }
+
+        btn.disabled = true;
+        const originalText = btn.textContent;
+        btn.textContent = '⏳ Excluindo...';
+
+        try {
+          await excluirAgendamento(agendamentoId);
+          mostrarMensagem('Agendamento excluído com sucesso!', 'success');
+          carregarEMostrarAgendamentos(); // Recarrega a lista
+        } catch (err) {
+          mostrarMensagem('Erro ao excluir agendamento: ' + err.message, 'error');
+        } finally {
+          btn.disabled = false;
+          btn.textContent = originalText;
+        }
+      });
+    });
+  }
+
+  function mostrarMensagem(texto, tipo) {
+    const msg = document.getElementById('agendamentosMsg');
+    msg.textContent = texto;
+    msg.className = `mt-4 p-3 rounded-lg ${tipo === 'error' 
+      ? 'bg-red-900/50 border border-red-500 text-red-200' 
+      : 'bg-green-900/50 border border-green-500 text-green-200'}`;
+    msg.classList.remove('hidden');
+    setTimeout(() => msg.classList.add('hidden'), 4000);
+  }
+
+  function filtrarAgendamentos() {
+    const filtroData = document.getElementById('filtroData').value;
+    const filtroStatus = document.getElementById('filtroStatus').value;
+    
+    let agendamentosFiltrados = [...database.agendamentos];
+
+    if (filtroData) {
+      agendamentosFiltrados = agendamentosFiltrados.filter(ag => ag.data === filtroData);
+    }
+
+    if (filtroStatus) {
+      agendamentosFiltrados = agendamentosFiltrados.filter(ag => ag.status === filtroStatus);
+    }
+
+    mostrarAgendamentos(agendamentosFiltrados);
+  }
+
+  // Event listeners para agendamentos
+  document.getElementById('recarregarAgendamentos')?.addEventListener('click', carregarEMostrarAgendamentos);
+  
+  document.getElementById('filtroData')?.addEventListener('change', filtrarAgendamentos);
+  document.getElementById('filtroStatus')?.addEventListener('change', filtrarAgendamentos);
+  
+  document.getElementById('limparFiltros')?.addEventListener('click', () => {
+    document.getElementById('filtroData').value = '';
+    document.getElementById('filtroStatus').value = '';
+    mostrarAgendamentos(database.agendamentos);
   });
 </script>
 
