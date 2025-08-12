@@ -1,9 +1,4 @@
 # Sistema de Administração - Barbearia VIP
-
-
-
- 
-
 ### 2. Gerenciar horários
 - Na aba "Gerenciar Horários", você pode:
   - Marcar/desmarcar horários disponíveis para cada dia da semana
