@@ -23,18 +23,18 @@
         <div class="bg-gray-800 rounded-2xl shadow-2xl p-8 w-full max-w-md">
             <div class="text-center mb-8">
                 <h1 class="text-3xl font-bold text-gold mb-2">Barbearia VIP</h1>
-                <p class="text-gray-400">Área Administrativa</p>
+                <p class="text-gray-400">Administrative Area</p>
             </div>
 
             <form id="loginForm" class="space-y-4">
                 <div>
-                    <label for="username" class="block text-sm font-medium text-gray-300 mb-2">Usuário</label>
+                    <label for="username" class="block text-sm font-medium text-gray-300 mb-2">User</label>
                     <input id="username" required
                         class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-gold focus:border-transparent text-white">
                 </div>
 
                 <div>
-                    <label for="password" class="block text-sm font-medium text-gray-300 mb-2">Senha</label>
+                    <label for="password" class="block text-sm font-medium text-gray-300 mb-2">Password</label>
                     <div class="relative">
                         <input type="password" id="password" required
                             class="w-full px-3 py-2 pr-10 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-gold focus:border-transparent text-white">
@@ -54,12 +54,12 @@
                 <button type="submit" id="loginBtn"
                     class="w-full bg-gold hover:bg-darkgold text-black font-semibold py-2 px-4 rounded-lg transition-colors"
                     disabled>
-                    Entrar
+                    Login
                 </button>
             </form>
 
             <div id="loginError" class="mt-4 p-3 bg-red-900/50 border border-red-500 rounded-lg text-red-200 hidden">
-                Usuário ou senha incorretos!
+                User or password incorrect!
             </div>
             <div id="apiError" class="mt-4 p-3 bg-red-900/50 border border-red-500 rounded-lg text-red-200 hidden">
             </div>
@@ -71,11 +71,11 @@
         <!-- Header -->
         <header class="bg-gray-800 border-b border-gray-700 p-4">
             <div class="container mx-auto flex items-center justify-between">
-                <h1 class="text-2xl font-bold text-gold">Painel Administrativo</h1>
+                <h1 class="text-2xl font-bold text-gold">Admin Dashboard</h1>
                 <div class="flex items-center space-x-4">
-                    <span class="text-gray-300">Bem-vindo, <span id="adminName">Admin</span></span>
+                    <span class="text-gray-300">Welcome, <span id="adminName">Admin</span></span>
                     <button id="logoutBtn"
-                        class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors">Sair</button>
+                        class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors">Logout</button>
                 </div>
             </div>
         </header>
@@ -85,10 +85,10 @@
             <div class="container mx-auto">
                 <div class="flex space-x-8">
                     <button class="tab-btn active px-4 py-3 text-white border-b-2 border-gold"
-                        data-tab="horarios">Gerenciar Horários</button>
+                        data-tab="horarios">Manage Hours</button>
                     <button
                         class="tab-btn px-4 py-3 text-gray-400 hover:text-white border-b-2 border-transparent hover:border-gray-600"
-                        data-tab="senha">Alterar Senha</button>
+                        data-tab="senha">Change Password</button>
                 </div>
             </div>
         </nav>
@@ -98,7 +98,7 @@
             <!-- Horários -->
             <div id="horariosTab" class="tab-content">
                 <div class="bg-gray-800 rounded-lg p-6">
-                    <h2 class="text-xl font-bold mb-6">Gerenciar Horários Disponíveis</h2>
+                    <h2 class="text-xl font-bold mb-6">Manage Available Hours</h2>
 
                     <div id="diasGrid" class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                         <!-- cartões de dias gerados via JS -->
@@ -107,15 +107,15 @@
                     <div class="flex justify-between mt-8">
                         <div class="space-x-4">
                             <button id="selectAllBtn"
-                                class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors">Selecionar
-                                Todos</button>
+                                class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors">Select
+                                All</button>
                             <button id="deselectAllBtn"
-                                class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors">Desmarcar
-                                Todos</button>
+                                class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors">Deselect
+                                All</button>
                         </div>
                         <button id="saveHorariosBtn"
                             class="bg-gold hover:bg-darkgold text-black font-semibold px-6 py-2 rounded-lg transition-colors">
-                            Salvar Alterações
+                            Save Changes
                         </button>
                     </div>
 
@@ -126,12 +126,12 @@
             <!-- Alterar Senha -->
             <div id="senhaTab" class="tab-content hidden">
                 <div class="bg-gray-800 rounded-lg p-6 max-w-md">
-                    <h2 class="text-xl font-bold mb-6">Alterar Senha</h2>
+                    <h2 class="text-xl font-bold mb-6">Change Password</h2>
 
                     <form id="senhaForm" class="space-y-4">
                         <div>
-                            <label for="senhaAtual" class="block text-sm font-medium text-gray-300 mb-2">Senha
-                                Atual</label>
+                            <label for="senhaAtual" class="block text-sm font-medium text-gray-300 mb-2">Current
+                                Password</label>
                             <div class="relative">
                                 <input type="password" id="senhaAtual" required
                                     class="w-full px-3 py-2 pr-10 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-gold focus:border-transparent text-white">
@@ -150,8 +150,8 @@
                         </div>
 
                         <div>
-                            <label for="novaSenha" class="block text-sm font-medium text-gray-300 mb-2">Nova
-                                Senha</label>
+                            <label for="novaSenha" class="block text-sm font-medium text-gray-300 mb-2">New
+                                Password</label>
                             <div class="relative">
                                 <input type="password" id="novaSenha" required
                                     class="w-full px-3 py-2 pr-10 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-gold focus:border-transparent text-white">
@@ -170,8 +170,7 @@
                         </div>
 
                         <div>
-                            <label for="confirmarSenha" class="block text-sm font-medium text-gray-300 mb-2">Confirmar
-                                Nova Senha</label>
+                            <label for="confirmarSenha" class="block text-sm font-medium text-gray-300 mb-2">Confirm New Password</label>
                             <div class="relative">
                                 <input type="password" id="confirmarSenha" required
                                     class="w-full px-3 py-2 pr-10 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-gold focus:border-transparent text-white">
@@ -191,7 +190,7 @@
 
                         <button type="submit"
                             class="bg-gold hover:bg-darkgold text-black font-semibold py-2 px-4 rounded-lg transition-colors">
-                            Alterar Senha
+                            Change Password
                         </button>
                     </form>
 
@@ -318,7 +317,7 @@
     } catch (err) {
       console.error(err);
       const el = document.getElementById('apiError');
-      el.textContent = 'Não consegui conectar na API (https://barbeariacaio.onrender.com). Verifique a conexão e tente novamente.';
+      el.textContent = 'Could not connect to the API (https://barbeariacaio.onrender.com). Check your connection and try again.';
       el.classList.remove('hidden');
     }
   });
@@ -413,13 +412,13 @@
 
   // ---- Horários (UI dinâmica)
   const dias = [
-    { key: 'segunda', label: 'Segunda-feira', abbr: 'seg' },
-    { key: 'terca', label: 'Terça-feira', abbr: 'ter' },
-    { key: 'quarta', label: 'Quarta-feira', abbr: 'qua' },
-    { key: 'quinta', label: 'Quinta-feira', abbr: 'qui' },
-    { key: 'sexta', label: 'Sexta-feira', abbr: 'sex' },
-    { key: 'sabado', label: 'Sábado', abbr: 'sab' },
-    { key: 'domingo', label: 'Domingo', abbr: 'dom' }
+    { key: 'segunda', label: 'Monday', abbr: 'seg' },
+    { key: 'terca', label: 'Tuesday', abbr: 'ter' },
+    { key: 'quarta', label: 'Wednesday', abbr: 'qua' },
+    { key: 'quinta', label: 'Thursday', abbr: 'qui' },
+    { key: 'sexta', label: 'Friday', abbr: 'sex' },
+    { key: 'sabado', label: 'Saturday', abbr: 'sab' },
+    { key: 'domingo', label: 'Sunday', abbr: 'dom' }
   ];
 
   function gerarHalfHours(inicio = '08:00', fim = '22:00') {
@@ -532,24 +531,24 @@
     if (novaSenha.length < 6) return show('error', 'A nova senha deve ter pelo menos 6 caracteres!');
 
     try {
-      // Primeiro verifica se a senha atual está correta fazendo login
+      // First verify if the current password is correct by attempting login
       const testLogin = await fetch(`${API}/auth/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: database.admin.username, password: senhaAtual })
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: database.admin.username, password: senhaAtual })
       });
       
       if (!testLogin.ok) {
-        return show('error', 'Senha atual incorreta!');
+      return show('error', 'Current password is incorrect!');
       }
 
       const updated = await apiPatch('/admin/1', { password: novaSenha });
       database.admin = { ...database.admin, ...updated };
       (document.getElementById('senhaForm')).reset();
-      show('success', 'Senha alterada com sucesso!');
+      show('success', 'Password changed successfully!');
     } catch (err) {
       console.error(err);
-      show('error', 'Falha ao atualizar senha. Verifique o servidor.');
+      show('error', 'Failed to update password. Please check the server.');
     }
   });
 
