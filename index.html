@@ -889,14 +889,20 @@
       console.log('🔄 Carregando agendamentos para data:', data);
       
       try {
-        const r = await fetch(`${API_BASE}/agendamentos/data/${data}`, {
+        // Carrega TODOS os agendamentos, não apenas por data
+        const r = await fetch(`${API_BASE}/agendamentos`, {
           cache: 'no-store'
         });
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
-        const agendamentos = await r.json();
+        const todosAgendamentos = await r.json();
         
-        console.log('✅ Agendamentos carregados:', agendamentos);
-        return agendamentos;
+        // Filtra apenas os agendamentos confirmados para a data específica
+        const agendamentosConfirmados = todosAgendamentos.filter(ag => 
+          ag.data === data && ag.status === 'confirmado'
+        );
+        
+        console.log('✅ Agendamentos confirmados para', data, ':', agendamentosConfirmados);
+        return agendamentosConfirmados;
       } catch (error) {
         console.warn('⚠️ Erro ao carregar agendamentos:', error);
         return [];
@@ -989,10 +995,10 @@
       const horariosDisponiveis = await carregarHorariosDisponiveis();
       console.log('⏰ Horários disponíveis para', diaChave, ':', horariosDisponiveis[diaChave]);
 
-      // Carregar agendamentos já marcados para esta data
-      const agendamentosExistentes = await carregarAgendamentosPorData(dataSelecionada);
-      const horariosOcupados = new Set(agendamentosExistentes.map(ag => ag.horario));
-      console.log('🚫 Horários já ocupados:', Array.from(horariosOcupados));
+      // Carregar agendamentos confirmados para esta data
+      const agendamentosConfirmados = await carregarAgendamentosPorData(dataSelecionada);
+      const horariosOcupados = new Set(agendamentosConfirmados.map(ag => ag.horario));
+      console.log('🚫 Horários ocupados (confirmados):', Array.from(horariosOcupados));
 
       // Limpar e popular o select
       horarioSelect.innerHTML = '<option value="">Selecione um horário</option>';
