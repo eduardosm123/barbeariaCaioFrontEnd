@@ -1,437 +1,925 @@
 <!DOCTYPE html>
 <html lang="pt-BR" class="dark">
+
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Admin · Barbearia VIP</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      darkMode: 'class',
-      theme: { extend: { colors: { gold:'#D4AF37', darkgold:'#B8941F' } } }
-    };
-  </script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin - Barbearia VIP</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: { colors: { gold: '#D4AF37', darkgold: '#B8941F' } }
+            }
+        }
+    </script>
 </head>
-<body class="bg-gray-900 text-white">
-  <!-- Navbar -->
-  <header class="w-full bg-black/95 border-b border-gray-800 sticky top-0 z-50">
-    <nav class="container mx-auto px-4 py-4 flex items-center justify-between">
-      <a href="index.html" class="text-white/70 hover:text-white">← Voltar</a>
-      <div class="text-2xl font-bold text-gold">Admin · Agendamentos</div>
-      <div class="flex items-center gap-4">
-        <div class="text-sm text-white/60" id="lastSync">—</div>
-        <button id="btnSair" class="text-white/70 hover:text-white text-sm border border-gray-700 px-3 py-1 rounded">Sair</button>
-      </div>
-    </nav>
-  </header>
 
-  <!-- Filtros -->
-  <section class="container mx-auto px-4 mt-6">
-    <div class="bg-gray-800/70 rounded-xl p-4 border border-gray-700 flex gap-3 flex-col md:flex-row md:items-center md:justify-between">
-      <div class="flex gap-2 items-center">
-        <label class="text-white/70 text-sm">Status:</label>
-        <select id="filtroStatus" class="bg-gray-900 border border-gray-700 rounded px-3 py-2">
-          <option value="">Todos</option>
-          <option value="pendente">Pendente</option>
-          <option value="confirmado">Confirmado</option>
-          <option value="cancelado">Cancelado</option>
-        </select>
-      </div>
+<body class="bg-gray-900 text-white min-h-screen">
 
-      <div class="flex gap-2 items-center">
-        <input id="busca" type="search" placeholder="Buscar por nome/telefone/serviço..."
-               class="w-72 max-w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 outline-none"/>
-        <button id="btnRecarregar" class="bg-gold text-black font-semibold px-4 py-2 rounded hover:bg-darkgold">
-          Recarregar
-        </button>
-      </div>
-    </div>
-  </section>
+    <!-- Login -->
+    <div id="loginScreen" class="min-h-screen flex items-center justify-center p-4">
+        <div class="bg-gray-800 rounded-2xl shadow-2xl p-8 w-full max-w-md">
+            <div class="text-center mb-8">
+                <h1 class="text-3xl font-bold text-gold mb-2">Barbearia VIP</h1>
+                <p class="text-gray-400">Administrative Area</p>
+            </div>
 
-  <!-- Alertas -->
-  <div id="alertBox" class="container mx-auto px-4 mt-4 hidden">
-    <div id="alertInner" class="rounded-lg px-4 py-3"></div>
-  </div>
+            <form id="loginForm" class="space-y-4">
+                <div>
+                    <label for="username" class="block text-sm font-medium text-gray-300 mb-2">User</label>
+                    <input id="username" required
+                        class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-gold focus:border-transparent text-white">
+                </div>
 
-  <!-- Lista -->
-  <main class="container mx-auto px-4 my-6">
-    <div id="lista" class="grid gap-4"></div>
-  </main>
+                <div>
+                    <label for="password" class="block text-sm font-medium text-gray-300 mb-2">Password</label>
+                    <div class="relative">
+                        <input type="password" id="password" required
+                            class="w-full px-3 py-2 pr-10 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-gold focus:border-transparent text-white">
+                        <button type="button" class="absolute inset-y-0 right-0 pr-3 flex items-center toggle-password"
+                            data-target="password" aria-label="Mostrar/ocultar senha">
+                            <svg class="h-5 w-5 text-gray-400 hover:text-gray-300" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
 
-  <!-- Login Modal (aparece se não houver sessão) -->
-  <div id="loginModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
-    <div class="bg-gray-900 border border-gray-700 rounded-2xl w-full max-w-sm p-6">
-      <h2 class="text-xl font-semibold mb-4">Entrar</h2>
-      <p class="text-white/70 text-sm mb-4">Faça login para gerenciar os agendamentos.</p>
-      <form id="loginForm" class="space-y-3">
-        <div>
-          <label class="block text-sm mb-1 text-white/80" for="loginUser">Usuário</label>
-          <input id="loginUser" type="text" required class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2">
+                <button type="submit" id="loginBtn"
+                    class="w-full bg-gold hover:bg-darkgold text-black font-semibold py-2 px-4 rounded-lg transition-colors"
+                    disabled>
+                    Login
+                </button>
+            </form>
+
+            <div id="loginError" class="mt-4 p-3 bg-red-900/50 border border-red-500 rounded-lg text-red-200 hidden">
+                User or password incorrect!
+            </div>
+            <div id="apiError" class="mt-4 p-3 bg-red-900/50 border border-red-500 rounded-lg text-red-200 hidden">
+            </div>
         </div>
-        <div>
-          <label class="block text-sm mb-1 text-white/80" for="loginPass">Senha</label>
-          <input id="loginPass" type="password" required class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2">
-        </div>
-        <button class="w-full bg-gold hover:bg-darkgold text-black font-semibold rounded px-4 py-2">Entrar</button>
-      </form>
-      <p id="loginMsg" class="text-red-300 text-sm mt-3 hidden"></p>
     </div>
-  </div>
 
-  <template id="tpl-card">
-    <div class="rounded-xl bg-gray-800 border border-gray-700 p-5" data-id="">
-      <div class="flex items-start justify-between gap-4 flex-wrap">
-        <div class="space-y-2">
-          <h3 class="text-xl font-semibold">
-            <span class="nome">—</span>
-            <span class="ml-2 text-xs px-2 py-1 rounded-full align-middle status-badge">status</span>
-          </h3>
-          <div class="text-white/80 text-sm">
-            <div><span class="font-semibold">Telefone:</span> <span class="tel">—</span></div>
-            <div><span class="font-semibold">Serviço(s):</span> <span class="servico">—</span></div>
+    <!-- Dashboard -->
+    <div id="adminDashboard" class="hidden">
+        <!-- Header -->
+        <header class="bg-gray-800 border-b border-gray-700 p-4">
+            <div class="container mx-auto flex items-center justify-between">
+                <h1 class="text-2xl font-bold text-gold">Admin Dashboard</h1>
+                <div class="flex items-center space-x-4">
+                    <span class="text-gray-300">Welcome, <span id="adminName">Admin</span></span>
+                    <button id="logoutBtn"
+                        class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors">Logout</button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Nav -->
+        <nav class="bg-gray-800 border-b border-gray-700">
+            <div class="container mx-auto">
+                <div class="flex space-x-8">
+                    <button class="tab-btn active px-4 py-3 text-white border-b-2 border-gold"
+                        data-tab="agendamentos">Agendamentos</button>
+                    <button class="tab-btn px-4 py-3 text-gray-400 hover:text-white border-b-2 border-transparent hover:border-gray-600"
+                        data-tab="horarios">Manage Hours</button>
+                    <button
+                        class="tab-btn px-4 py-3 text-gray-400 hover:text-white border-b-2 border-transparent hover:border-gray-600"
+                        data-tab="senha">Change Password</button>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Content -->
+        <main class="container mx-auto p-6">
+            <!-- Agendamentos -->
+            <div id="agendamentosTab" class="tab-content">
+                <div class="bg-gray-800 rounded-lg p-6">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-xl font-bold">Gerenciar Agendamentos</h2>
+                        <button id="recarregarAgendamentos"
+                            class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors text-sm">
+                            🔄 Recarregar
+                        </button>
+                    </div>
+
+                    <!-- Filtros -->
+                    <div class="grid md:grid-cols-3 gap-4 mb-6 p-4 bg-gray-700 rounded-lg">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-300 mb-2">Filtrar por Data</label>
+                            <input type="date" id="filtroData" 
+                                class="w-full px-3 py-2 bg-gray-600 border border-gray-500 rounded-lg focus:ring-2 focus:ring-gold focus:border-transparent text-white">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-300 mb-2">Filtrar por Status</label>
+                            <select id="filtroStatus" 
+                                class="w-full px-3 py-2 bg-gray-600 border border-gray-500 rounded-lg focus:ring-2 focus:ring-gold focus:border-transparent text-white">
+                                <option value="">Todos os status</option>
+                                <option value="pendente">Pendente</option>
+                                <option value="confirmado">Confirmado</option>
+                                <option value="cancelado">Cancelado</option>
+                                <option value="finalizado">Finalizado</option>
+                            </select>
+                        </div>
+                        <div class="flex items-end">
+                            <button id="limparFiltros"
+                                class="w-full bg-gray-600 hover:bg-gray-500 text-white px-4 py-2 rounded-lg transition-colors text-sm">
+                                Limpar Filtros
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Lista de Agendamentos -->
+                    <div id="agendamentosLista" class="space-y-4">
+                        <div class="text-center py-8 text-gray-400">
+                            Carregando agendamentos...
+                        </div>
+                    </div>
+
+                    <div id="agendamentosMsg" class="mt-4 hidden"></div>
+                </div>
+            </div>
+
+            <!-- Horários -->
+            <div id="horariosTab" class="tab-content hidden">
+                <div class="bg-gray-800 rounded-lg p-6">
+                    <h2 class="text-xl font-bold mb-6">Manage Available Hours</h2>
+
+                    <div id="diasGrid" class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <!-- cartões de dias gerados via JS -->
+                    </div>
+
+                    <div class="flex flex-col sm:flex-row sm:justify-between mt-8 gap-4">
+                      <div class="flex flex-col sm:flex-row gap-2 sm:space-x-4 sm:gap-0">
+                        <button id="selectAllBtn"
+                          class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors text-sm">Select
+                          All</button>
+                        <button id="deselectAllBtn"
+                          class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors text-sm">Deselect
+                          All</button>
+                      </div>
+                      <button id="saveHorariosBtn"
+                        class="bg-gold hover:bg-darkgold text-black font-semibold px-6 py-2 rounded-lg transition-colors text-sm">
+                        Save Changes
+                      </button>
+                    </div>
+
+                    <div id="saveMsg" class="mt-4 hidden"></div>
+                </div>
+            </div>
+
+            <!-- Alterar Senha -->
+            <div id="senhaTab" class="tab-content hidden">
+                <div class="bg-gray-800 rounded-lg p-6 max-w-md">
+                    <h2 class="text-xl font-bold mb-6">Change Password</h2>
+
+                    <form id="senhaForm" class="space-y-4">
+                        <div>
+                            <label for="senhaAtual" class="block text-sm font-medium text-gray-300 mb-2">Current
+                                Password</label>
+                            <div class="relative">
+                                <input type="password" id="senhaAtual" required
+                                    class="w-full px-3 py-2 pr-10 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-gold focus:border-transparent text-white">
+                                <button type="button"
+                                    class="absolute inset-y-0 right-0 pr-3 flex items-center toggle-password"
+                                    data-target="senhaAtual" aria-label="Mostrar/ocultar senha">
+                                    <svg class="h-5 w-5 text-gray-400 hover:text-gray-300" fill="none"
+                                        stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label for="novaSenha" class="block text-sm font-medium text-gray-300 mb-2">New
+                                Password</label>
+                            <div class="relative">
+                                <input type="password" id="novaSenha" required
+                                    class="w-full px-3 py-2 pr-10 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-gold focus:border-transparent text-white">
+                                <button type="button"
+                                    class="absolute inset-y-0 right-0 pr-3 flex items-center toggle-password"
+                                    data-target="novaSenha" aria-label="Mostrar/ocultar senha">
+                                    <svg class="h-5 w-5 text-gray-400 hover:text-gray-300" fill="none"
+                                        stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label for="confirmarSenha" class="block text-sm font-medium text-gray-300 mb-2">Confirm New Password</label>
+                            <div class="relative">
+                                <input type="password" id="confirmarSenha" required
+                                    class="w-full px-3 py-2 pr-10 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-gold focus:border-transparent text-white">
+                                <button type="button"
+                                    class="absolute inset-y-0 right-0 pr-3 flex items-center toggle-password"
+                                    data-target="confirmarSenha" aria-label="Mostrar/ocultar senha">
+                                    <svg class="h-5 w-5 text-gray-400 hover:text-gray-300" fill="none"
+                                        stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+
+                        <button type="submit"
+                            class="bg-gold hover:bg-darkgold text-black font-semibold py-2 px-4 rounded-lg transition-colors">
+                            Change Password
+                        </button>
+                    </form>
+
+                    <div id="senhaMessage" class="mt-4 p-3 rounded-lg hidden"></div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+ <script>
+  const API = 'https://barbeariacaio.onrender.com';
+
+  // Estado
+  let database = {
+    admin: { id: 1, username: '', password: '', email: '' },
+    horarios: { segunda: [], terca: [], quarta: [], quinta: [], sexta: [], sabado: [], domingo: [] },
+    agendamentos: []
+  };
+  let bootDone = false;
+  let sessionId = null; // Para gerenciar a sessão
+  
+  // Funções para gerenciar cookies
+  function setCookie(name, value, days = 7) {
+    const expires = new Date();
+    expires.setTime(expires.getTime() + (days * 24 * 60 * 60 * 1000));
+    document.cookie = `${name}=${encodeURIComponent(value)};expires=${expires.toUTCString()};path=/;SameSite=Strict`;
+  }
+
+  function getCookie(name) {
+    const nameEQ = name + "=";
+    const ca = document.cookie.split(';');
+    for (let i = 0; i < ca.length; i++) {
+      let c = ca[i];
+      while (c.charAt(0) === ' ') c = c.substring(1, c.length);
+      if (c.indexOf(nameEQ) === 0) return decodeURIComponent(c.substring(nameEQ.length, c.length));
+    }
+    return null;
+  }
+
+  function deleteCookie(name) {
+    document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/;`;
+  }
+
+  // Credenciais armazenadas para uso nas operações
+  let storedCredentials = {
+    username: '',
+    password: ''
+  };
+
+  // Helpers de fetch com session ID
+  async function apiGet(path) {
+    const headers = {};
+    if (sessionId) {
+      headers['X-Session-Id'] = sessionId;
+    }
+    
+    const r = await fetch(`${API}${path}`, { headers });
+    if (!r.ok) throw new Error(`GET ${path} -> ${r.status}`);
+    return r.json();
+  }
+  
+  async function apiPut(path, data) {
+    const headers = { 'Content-Type': 'application/json' };
+    if (sessionId) {
+      headers['X-Session-Id'] = sessionId;
+    }
+    
+    const r = await fetch(`${API}${path}`, {
+      method: 'PUT',
+      headers,
+      body: JSON.stringify(data)
+    });
+    if (!r.ok) throw new Error(`PUT ${path} -> ${r.status}`);
+    return r.json();
+  }
+  
+  async function apiPatch(path, data) {
+    const headers = { 'Content-Type': 'application/json' };
+    if (sessionId) {
+      headers['X-Session-Id'] = sessionId;
+    }
+    
+    const r = await fetch(`${API}${path}`, {
+      method: 'PATCH',
+      headers,
+      body: JSON.stringify(data)
+    });
+    if (!r.ok) throw new Error(`PATCH ${path} -> ${r.status}`);
+    return r.json();
+  }
+  
+  async function apiPost(path, data) {
+    const headers = { 'Content-Type': 'application/json' };
+    if (sessionId) {
+      headers['X-Session-Id'] = sessionId;
+    }
+    
+    const r = await fetch(`${API}${path}`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(data)
+    });
+    if (!r.ok) throw new Error(`POST ${path} -> ${r.status}`);
+    return r.json();
+  }
+  
+  async function apiDelete(path) {
+    const headers = { 'Content-Type': 'application/json' };
+    if (sessionId) {
+      headers['X-Session-Id'] = sessionId;
+    }
+    
+    const r = await fetch(`${API}${path}`, {
+      method: 'DELETE',
+      headers
+    });
+    if (!r.ok) throw new Error(`DELETE ${path} -> ${r.status}`);
+    return r.json();
+  }
+
+  // Funções específicas para agendamentos
+  async function carregarAgendamentos() {
+    try {
+      const agendamentos = await apiGet('/agendamentos');
+      database.agendamentos = agendamentos;
+      return agendamentos;
+    } catch (err) {
+      console.error('Erro ao carregar agendamentos:', err);
+      return [];
+    }
+  }
+
+  async function atualizarAgendamento(id, dadosAtualizados) {
+    try {
+      const agendamentoAtualizado = await apiPatch(`/agendamentos/${id}`, dadosAtualizados);
+      return agendamentoAtualizado;
+    } catch (err) {
+      console.error('Erro ao atualizar agendamento:', err);
+      throw err;
+    }
+  }
+
+  async function excluirAgendamento(id) {
+    try {
+      await apiDelete(`/agendamentos/${id}`);
+      return true;
+    } catch (err) {
+      console.error('Erro ao excluir agendamento:', err);
+      throw err;
+    }
+  }
+
+  // Inicialização
+  document.addEventListener('DOMContentLoaded', async () => {
+    try {
+      // Carrega credenciais dos cookies se existirem
+      const savedUsername = getCookie('adminUsername');
+      const savedPassword = getCookie('adminPassword');
+      if (savedUsername && savedPassword) {
+        storedCredentials.username = savedUsername;
+        storedCredentials.password = savedPassword;
+      }
+
+      // Verifica se há sessão salva
+      const savedSessionId = sessionStorage.getItem('adminSessionId');
+      if (savedSessionId) {
+        sessionId = savedSessionId;
+        
+        // Verifica se a sessão ainda é válida
+        try {
+          const verify = await apiGet('/auth/verify');
+          if (verify.valid) {
+            database.admin = verify.admin;
+            sessionStorage.setItem('adminLoggedIn', 'true');
+          } else {
+            // Sessão inválida, limpa
+            sessionId = null;
+            sessionStorage.removeItem('adminSessionId');
+            sessionStorage.removeItem('adminLoggedIn');
+          }
+        } catch (err) {
+          // Erro na verificação, limpa a sessão
+          sessionId = null;
+          sessionStorage.removeItem('adminSessionId');
+          sessionStorage.removeItem('adminLoggedIn');
+        }
+      }
+
+      // Carrega horários (não precisa de autenticação)
+      try {
+        const horarios = await apiGet('/horarios');
+        database.horarios = horarios;
+      } catch (err) {
+        console.warn('Erro ao carregar horários:', err);
+      }
+
+      renderGrid();
+      marcarCheckboxes();
+      
+      // Se já estava logado e sessão é válida, vai para o dashboard
+      if (sessionStorage.getItem('adminLoggedIn') && sessionId) {
+        showDashboard();
+        // Carrega agendamentos se já está logado
+        carregarEMostrarAgendamentos();
+      }
+
+      document.getElementById('loginBtn').disabled = false;
+      bootDone = true;
+    } catch (err) {
+      console.error(err);
+      const el = document.getElementById('apiError');
+      el.textContent = 'Could not connect to the API (https://barbeariacaio.onrender.com). Check your connection and try again.';
+      el.classList.remove('hidden');
+    }
+  });
+
+  // DOM
+  const loginScreen = document.getElementById('loginScreen');
+  const adminDashboard = document.getElementById('adminDashboard');
+  const loginForm = document.getElementById('loginForm');
+  const loginError = document.getElementById('loginError');
+  const logoutBtn = document.getElementById('logoutBtn');
+
+  // Login
+  loginForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (!bootDone) return;
+
+    const username = document.getElementById('username').value.trim();
+    const password = document.getElementById('password').value;
+    
+    const loginBtn = document.getElementById('loginBtn');
+    loginBtn.disabled = true;
+    loginBtn.textContent = 'Entrando...';
+
+    try {
+      // Tenta fazer login via API
+      const loginData = await apiPost('/auth/login', { username, password });
+      
+      // Salva o sessionId
+      sessionId = loginData.sessionId;
+      sessionStorage.setItem('adminSessionId', sessionId);
+      
+      // Salva as credenciais em cookies para uso posterior
+      setCookie('adminUsername', username, 7);
+      setCookie('adminPassword', password, 7);
+      
+      // Atualiza as credenciais armazenadas
+      storedCredentials.username = username;
+      storedCredentials.password = password;
+      
+      // Dados do admin vêm na resposta do login
+      database.admin = loginData.admin;
+      
+      // Carrega os horários mais recentes
+      try {
+        const horarios = await apiGet('/horarios');
+        database.horarios = horarios;
+        marcarCheckboxes(); // atualiza os checkboxes com os dados mais recentes
+      } catch (err) {
+        console.warn('Erro ao recarregar horários:', err);
+      }
+
+      sessionStorage.setItem('adminLoggedIn', 'true');
+      document.getElementById('adminName').textContent = loginData.admin.username || 'Admin';
+      loginError.classList.add('hidden');
+      showDashboard();
+      
+      // Carrega agendamentos após login bem-sucedido
+      carregarEMostrarAgendamentos();
+    } catch (err) {
+      console.error('Erro no login:', err);
+      loginError.classList.remove('hidden');
+    } finally {
+      loginBtn.disabled = false;
+      loginBtn.textContent = 'Entrar';
+    }
+  });
+
+  // Logout
+  logoutBtn.addEventListener('click', async () => {
+    try {
+      // Tenta fazer logout via API (limpa a sessão no servidor)
+      if (sessionId) {
+        await apiPost('/auth/logout', {});
+      }
+    } catch (err) {
+      console.warn('Erro ao fazer logout no servidor:', err);
+    } finally {
+      // Sempre limpa o estado local
+      sessionId = null;
+      sessionStorage.removeItem('adminLoggedIn');
+      sessionStorage.removeItem('adminSessionId');
+      
+      // Limpa os cookies das credenciais
+      deleteCookie('adminUsername');
+      deleteCookie('adminPassword');
+      
+      // Limpa as credenciais armazenadas
+      storedCredentials.username = '';
+      storedCredentials.password = '';
+      
+      window.location.href = 'index.html';
+    }
+  });
+
+  function showDashboard() {
+    loginScreen.classList.add('hidden');
+    adminDashboard.classList.remove('hidden');
+  }
+
+  // Abas
+  const tabBtns = document.querySelectorAll('.tab-btn');
+  const tabContents = document.querySelectorAll('.tab-content');
+  tabBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const tab = btn.dataset.tab;
+      tabBtns.forEach(b => { b.classList.remove('active', 'border-gold', 'text-white'); b.classList.add('text-gray-400', 'border-transparent'); });
+      btn.classList.add('active', 'border-gold', 'text-white'); btn.classList.remove('text-gray-400', 'border-transparent');
+      tabContents.forEach(c => c.classList.add('hidden'));
+      document.getElementById(`${tab}Tab`).classList.remove('hidden');
+    });
+  });
+
+  // ---- Horários (UI dinâmica)
+  const dias = [
+    { key: 'segunda', label: 'Monday', abbr: 'seg' },
+    { key: 'terca', label: 'Tuesday', abbr: 'ter' },
+    { key: 'quarta', label: 'Wednesday', abbr: 'qua' },
+    { key: 'quinta', label: 'Thursday', abbr: 'qui' },
+    { key: 'sexta', label: 'Friday', abbr: 'sex' },
+    { key: 'sabado', label: 'Saturday', abbr: 'sab' },
+    { key: 'domingo', label: 'Sunday', abbr: 'dom' }
+  ];
+
+  function gerarHalfHours(inicio = '08:00', fim = '22:00') {
+    const [hIni, mIni] = inicio.split(':').map(Number);
+    const [hFim, mFim] = fim.split(':').map(Number);
+    const start = hIni * 60 + mIni;
+    const end = hFim * 60 + mFim;
+    const out = [];
+    for (let t = start; t <= end; t += 30) {
+      const h = Math.floor(t / 60).toString().padStart(2, '0');
+      const m = (t % 60).toString().padStart(2, '0');
+      out.push(`${h}:${m}`);
+    }
+    return out;
+  }
+  const slots = gerarHalfHours('08:00', '22:00'); // grade completa; o que ficar marcado vem do backend
+
+  let gridRendered = false;
+  function renderGrid() {
+    if (gridRendered) return;
+    const grid = document.getElementById('diasGrid');
+    grid.innerHTML = dias.map(d => {
+      const checks = slots.map(s => `
+        <div class="flex items-center space-x-2">
+          <input type="checkbox" id="${d.abbr}-${s}" class="horario-checkbox" data-dia="${d.key}" data-horario="${s}">
+          <label for="${d.abbr}-${s}" class="text-sm">${s}</label>
+        </div>
+      `).join('');
+      return `
+        <div class="bg-gray-700 rounded-lg p-4">
+          <h3 class="font-semibold text-lg mb-4 text-gold">${d.label}</h3>
+          <!-- uma coluna para não parecer duplicado -->
+          <div class="space-y-2">${checks}</div>
+        </div>
+      `;
+    }).join('');
+    gridRendered = true;
+  }
+
+  function marcarCheckboxes() {
+    if (!database.horarios) return;
+    
+    Object.keys(database.horarios).forEach(dia => {
+      const marcados = new Set(database.horarios[dia] || []);
+      document.querySelectorAll(`[data-dia="${dia}"]`).forEach(cb => {
+        cb.checked = marcados.has(cb.dataset.horario);
+      });
+    });
+  }
+
+  // Selecionar/Desmarcar todos
+  document.getElementById('selectAllBtn').addEventListener('click', () => {
+    document.querySelectorAll('.horario-checkbox').forEach(cb => cb.checked = true);
+  });
+  document.getElementById('deselectAllBtn').addEventListener('click', () => {
+    document.querySelectorAll('.horario-checkbox').forEach(cb => cb.checked = false);
+  });
+
+  // Salvar horários -> PATCH /horarios
+  document.getElementById('saveHorariosBtn').addEventListener('click', async () => {
+    const novo = { segunda: [], terca: [], quarta: [], quinta: [], sexta: [], sabado: [], domingo: [] };
+    Object.keys(novo).forEach(dia => {
+      document.querySelectorAll(`[data-dia="${dia}"]:checked`).forEach(cb => {
+        novo[dia].push(cb.dataset.horario);
+      });
+    });
+
+    const btn = document.getElementById('saveHorariosBtn');
+    const saveMsg = document.getElementById('saveMsg');
+    btn.disabled = true;
+
+    try {
+      const atualizado = await apiPatch('/horarios', novo);
+      database.horarios = atualizado; // mantém em memória
+      saveMsg.textContent = 'Horários salvos com sucesso!';
+      saveMsg.className = 'mt-4 p-3 rounded-lg bg-green-900/50 border border-green-500 text-green-200';
+    } catch (err) {
+      console.error('Erro ao salvar horários:', err);
+      saveMsg.textContent = 'Falha ao salvar horários. Verifique o servidor ou credenciais.';
+      saveMsg.className = 'mt-4 p-3 rounded-lg bg-red-900/50 border border-red-500 text-red-200';
+    } finally {
+      saveMsg.classList.remove('hidden');
+      btn.disabled = false;
+      setTimeout(() => saveMsg.classList.add('hidden'), 4000);
+    }
+  });
+
+  // Alterar senha -> PATCH /admin/1
+  document.getElementById('senhaForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const senhaAtual = document.getElementById('senhaAtual').value;
+    const novaSenha = document.getElementById('novaSenha').value;
+    const confirmar = document.getElementById('confirmarSenha').value;
+    const msg = document.getElementById('senhaMessage');
+
+    function show(type, text) {
+      msg.textContent = text;
+      msg.className = 'mt-4 p-3 rounded-lg ' + (type === 'error'
+        ? 'bg-red-900/50 border border-red-500 text-red-200'
+        : 'bg-green-900/50 border border-green-500 text-green-200');
+      msg.classList.remove('hidden');
+      setTimeout(() => msg.classList.add('hidden'), 5000);
+    }
+
+    if (!sessionId) {
+      return show('error', 'Sessão expirada. Faça login novamente.');
+    }
+
+    if (novaSenha !== confirmar) return show('error', 'As senhas não coincidem!');
+    if (novaSenha.length < 6) return show('error', 'A nova senha deve ter pelo menos 6 caracteres!');
+
+    try {
+      // First verify if the current password is correct by attempting login
+      const testLogin = await fetch(`${API}/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: database.admin.username, password: senhaAtual })
+      });
+      
+      if (!testLogin.ok) {
+      return show('error', 'Current password is incorrect!');
+      }
+
+      const updated = await apiPatch('/admin/1', { password: novaSenha });
+      database.admin = { ...database.admin, ...updated };
+      
+      // Atualiza as credenciais armazenadas com a nova senha
+      storedCredentials.password = novaSenha;
+      
+      // Atualiza o cookie com a nova senha
+      setCookie('adminPassword', novaSenha, 7);
+      
+      (document.getElementById('senhaForm')).reset();
+      show('success', 'Password changed successfully!');
+    } catch (err) {
+      console.error(err);
+      show('error', 'Failed to update password. Please check the server.');
+    }
+  });
+
+  // Mostrar/ocultar senha (3 campos + login)
+  document.addEventListener('click', (e) => {
+    const btn = e.target.closest('.toggle-password');
+    if (!btn) return;
+    const id = btn.dataset.target;
+    const input = document.getElementById(id);
+    const tipo = input.getAttribute('type') === 'password' ? 'text' : 'password';
+    input.setAttribute('type', tipo);
+  });
+
+  // ---- GESTÃO DE AGENDAMENTOS ----
+
+  function formatarData(dataStr) {
+    return new Date(`${dataStr}T00:00:00`).toLocaleDateString('pt-BR');
+  }
+
+  function formatarStatus(status) {
+    const statusMap = {
+      'pendente': { text: 'Pendente', class: 'bg-yellow-900/50 border-yellow-500 text-yellow-200' },
+      'confirmado': { text: 'Confirmado', class: 'bg-green-900/50 border-green-500 text-green-200' },
+      'cancelado': { text: 'Cancelado', class: 'bg-red-900/50 border-red-500 text-red-200' },
+      'finalizado': { text: 'Finalizado', class: 'bg-blue-900/50 border-blue-500 text-blue-200' }
+    };
+    return statusMap[status] || { text: status, class: 'bg-gray-900/50 border-gray-500 text-gray-200' };
+  }
+
+  function criarCardAgendamento(agendamento) {
+    const statusInfo = formatarStatus(agendamento.status);
+    return `
+      <div class="bg-gray-700 rounded-lg p-4 border border-gray-600" data-agendamento-id="${agendamento._id}">
+        <div class="flex justify-between items-start mb-3">
+          <div>
+            <h3 class="font-semibold text-lg text-white">${agendamento.nome}</h3>
+            <p class="text-gray-300 text-sm">${agendamento.telefone}</p>
+          </div>
+          <span class="px-2 py-1 rounded-full text-xs border ${statusInfo.class}">
+            ${statusInfo.text}
+          </span>
+        </div>
+        
+        <div class="grid grid-cols-2 gap-4 mb-4 text-sm">
+          <div>
+            <span class="text-gray-400">Serviço:</span>
+            <p class="text-white font-medium">${agendamento.servico}</p>
+          </div>
+          <div>
+            <span class="text-gray-400">Data:</span>
+            <p class="text-white font-medium">${formatarData(agendamento.data)}</p>
+          </div>
+          <div>
+            <span class="text-gray-400">Horário:</span>
+            <p class="text-white font-medium">${agendamento.horario}</p>
+          </div>
+          <div>
+            <span class="text-gray-400">Criado em:</span>
+            <p class="text-white font-medium">${new Date(agendamento.createdAt).toLocaleDateString('pt-BR')}</p>
           </div>
         </div>
 
-        <div class="text-right text-sm text-white/80">
-          <div><span class="font-semibold">Data:</span> <span class="data">—</span></div>
-          <div><span class="font-semibold">Horário:</span> <span class="horario">—</span></div>
-          <div><span class="font-semibold">Criado em:</span> <span class="criado">—</span></div>
+        <div class="flex flex-wrap gap-2">
+          <select class="status-select px-2 py-1 bg-gray-600 border border-gray-500 rounded text-white text-sm" 
+                  data-agendamento-id="${agendamento._id}">
+            <option value="pendente" ${agendamento.status === 'pendente' ? 'selected' : ''}>Pendente</option>
+            <option value="confirmado" ${agendamento.status === 'confirmado' ? 'selected' : ''}>Confirmado</option>
+            <option value="cancelado" ${agendamento.status === 'cancelado' ? 'selected' : ''}>Cancelado</option>
+            <option value="finalizado" ${agendamento.status === 'finalizado' ? 'selected' : ''}>Finalizado</option>
+          </select>
+          
+          <button class="salvar-status-btn bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-sm transition-colors"
+                  data-agendamento-id="${agendamento._id}">
+            💾 Salvar
+          </button>
+          
+          <button class="excluir-agendamento-btn bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm transition-colors"
+                  data-agendamento-id="${agendamento._id}">
+            🗑️ Excluir
+          </button>
         </div>
       </div>
+    `;
+  }
 
-      <div class="mt-4 flex flex-wrap items-center gap-3">
-        <select class="seletor-status bg-gray-900 border border-gray-700 rounded px-3 py-2">
-          <option value="pendente">Pendente</option>
-          <option value="confirmado">Confirmado</option>
-          <option value="cancelado">Cancelado</option>
-        </select>
+  async function carregarEMostrarAgendamentos() {
+    const lista = document.getElementById('agendamentosLista');
+    lista.innerHTML = '<div class="text-center py-8 text-gray-400">Carregando agendamentos...</div>';
 
-        <button class="btn-salvar bg-emerald-500 hover:bg-emerald-600 text-white font-semibold px-4 py-2 rounded">
-          Salvar
-        </button>
-        <button class="btn-excluir bg-red-600 hover:bg-red-700 text-white font-semibold px-4 py-2 rounded">
-          Excluir
-        </button>
-      </div>
-    </div>
-  </template>
+    try {
+      const agendamentos = await carregarAgendamentos();
+      mostrarAgendamentos(agendamentos);
+    } catch (err) {
+      lista.innerHTML = '<div class="text-center py-8 text-red-400">Erro ao carregar agendamentos</div>';
+    }
+  }
 
-  <script>
-    // =======================
-    // Config
-    // =======================
-    const API_BASE = 'https://barbeariacaio.onrender.com';
+  function mostrarAgendamentos(agendamentos) {
+    const lista = document.getElementById('agendamentosLista');
+    
+    if (!agendamentos || agendamentos.length === 0) {
+      lista.innerHTML = '<div class="text-center py-8 text-gray-400">Nenhum agendamento encontrado</div>';
+      return;
+    }
 
-    // =======================
-    // Sessão
-    // =======================
-    const getSessionId = () => localStorage.getItem('sessionId');
-    const setSessionId = (sid) => localStorage.setItem('sessionId', sid || '');
-    const clearSession = () => localStorage.removeItem('sessionId');
-
-    const showLogin = (msg='') => {
-      document.getElementById('loginModal').classList.remove('hidden');
-      document.getElementById('loginModal').classList.add('flex');
-      const p = document.getElementById('loginMsg');
-      if (msg) { p.textContent = msg; p.classList.remove('hidden'); } else { p.classList.add('hidden'); }
-    };
-    const hideLogin = () => {
-      document.getElementById('loginModal').classList.add('hidden');
-      document.getElementById('loginModal').classList.remove('flex');
-      document.getElementById('loginMsg').classList.add('hidden');
-    };
-
-    document.getElementById('loginForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const username = document.getElementById('loginUser').value.trim();
-      const password = document.getElementById('loginPass').value.trim();
-
-      try {
-        const r = await fetch(`${API_BASE}/auth/login`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ username, password })
-        });
-        if (!r.ok) {
-          let msg = 'Falha no login.';
-          try { const j = await r.json(); if (j?.message) msg = j.message; } catch {}
-          throw new Error(msg);
-        }
-        const j = await r.json();
-        if (!j.sessionId) throw new Error('Resposta sem sessionId.');
-        setSessionId(j.sessionId);
-        hideLogin();
-        await carregarAgendamentos();
-      } catch (err) {
-        document.getElementById('loginMsg').textContent = err.message;
-        document.getElementById('loginMsg').classList.remove('hidden');
-      }
+    // Ordenar por data e horário
+    const agendamentosOrdenados = agendamentos.sort((a, b) => {
+      const dateA = new Date(a.data + 'T' + a.horario);
+      const dateB = new Date(b.data + 'T' + b.horario);
+      return dateB - dateA; // Mais recentes primeiro
     });
 
-    document.getElementById('btnSair').addEventListener('click', () => {
-      clearSession();
-      showLogin('Sessão encerrada. Faça login novamente.');
+    lista.innerHTML = agendamentosOrdenados.map(agendamento => criarCardAgendamento(agendamento)).join('');
+    
+    // Adicionar event listeners
+    adicionarEventListenersAgendamentos();
+  }
+
+  function adicionarEventListenersAgendamentos() {
+    // Salvar status
+    document.querySelectorAll('.salvar-status-btn').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        const agendamentoId = e.target.dataset.agendamentoId;
+        const novoStatus = document.querySelector(`select.status-select[data-agendamento-id="${agendamentoId}"]`).value;
+        
+        btn.disabled = true;
+        const originalText = btn.textContent;
+        btn.textContent = '⏳ Salvando...';
+
+        try {
+          await atualizarAgendamento(agendamentoId, { status: novoStatus });
+          mostrarMensagem('Status atualizado com sucesso!', 'success');
+          carregarEMostrarAgendamentos(); // Recarrega a lista
+        } catch (err) {
+          mostrarMensagem('Erro ao atualizar status: ' + err.message, 'error');
+        } finally {
+          btn.disabled = false;
+          btn.textContent = originalText;
+        }
+      });
     });
 
-    // =======================
-    // Helpers UI
-    // =======================
-    const getId = (ag) => ag?._id ?? ag?.id ?? null;
+    // Excluir agendamento
+    document.querySelectorAll('.excluir-agendamento-btn').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        const agendamentoId = e.target.dataset.agendamentoId;
+        
+        if (!confirm('Tem certeza que deseja excluir este agendamento?')) {
+          return;
+        }
 
-    const fmtDateBR = (str) => {
-      if (!str) return '-';
-      const d = new Date(str);
-      if (isNaN(d)) return '-';
-      return d.toLocaleDateString('pt-BR');
-    };
+        btn.disabled = true;
+        const originalText = btn.textContent;
+        btn.textContent = '⏳ Excluindo...';
 
-    const statusLabel = (s) => {
-      switch ((s || '').toLowerCase()) {
-        case 'confirmado': return 'Confirmado';
-        case 'cancelado':  return 'Cancelado';
-        default:           return 'Pendente';
-      }
-    };
-
-    const badgeClasses = (s) => {
-      s = (s || '').toLowerCase();
-      if (s === 'confirmado') return 'bg-emerald-500/15 text-emerald-300 border border-emerald-700';
-      if (s === 'cancelado')  return 'bg-red-500/15 text-red-300 border border-red-700';
-      return 'bg-yellow-500/15 text-yellow-300 border border-yellow-700';
-    };
-
-    const showAlert = (type, msg) => {
-      const box = document.getElementById('alertBox');
-      const inner = document.getElementById('alertInner');
-      inner.className = 'rounded-lg px-4 py-3';
-      if (type === 'error') inner.classList.add('bg-red-900/40', 'text-red-200', 'border', 'border-red-700');
-      else if (type === 'success') inner.classList.add('bg-emerald-900/40', 'text-emerald-200', 'border', 'border-emerald-700');
-      else inner.classList.add('bg-gray-800', 'text-white/90', 'border', 'border-gray-700');
-      inner.textContent = msg;
-      box.classList.remove('hidden');
-      setTimeout(() => box.classList.add('hidden'), 3500);
-    };
-
-    // =======================
-    // API helpers (sempre com x-session-id)
-    // =======================
-    async function apiGet(path) {
-      const sid = getSessionId();
-      const r = await fetch(`${API_BASE}${path}`, {
-        cache: 'no-store',
-        headers: sid ? { 'x-session-id': sid } : {}
-      });
-      if (r.status === 401) { showLogin('Sessão inválida ou expirada. Faça login.'); throw new Error('401 Unauthorized'); }
-      if (!r.ok) throw new Error(`GET ${path} -> ${r.status}`);
-      return r.json();
-    }
-
-    async function apiPatch(path, body) {
-      const sid = getSessionId();
-      const r = await fetch(`${API_BASE}${path}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json', ...(sid ? { 'x-session-id': sid } : {}) },
-        body: JSON.stringify(body || {})
-      });
-      if (r.status === 401) {
-        showLogin('Sessão inválida ou expirada. Faça login.');
-        throw new Error('401 Unauthorized');
-      }
-      if (!r.ok) {
-        let message = `PATCH ${path} -> ${r.status}`;
-        try { const j = await r.json(); if (j?.message) message = j.message; } catch {}
-        throw new Error(message);
-      }
-      return r.json();
-    }
-
-    async function apiDelete(path) {
-      const sid = getSessionId();
-      const r = await fetch(`${API_BASE}${path}`, {
-        method: 'DELETE',
-        headers: sid ? { 'x-session-id': sid } : {}
-      });
-      if (r.status === 401) {
-        showLogin('Sessão inválida ou expirada. Faça login.');
-        throw new Error('401 Unauthorized');
-      }
-      if (!r.ok) throw new Error(`DELETE ${path} -> ${r.status}`);
-      try { return await r.json(); } catch { return true; }
-    }
-
-    // =======================
-    // Storage (fallback)
-    // =======================
-    function getLocalAgendamentos() {
-      try {
-        const db = JSON.parse(localStorage.getItem('barbeariaAdmin') || '{}');
-        return Array.isArray(db.agendamentos) ? db.agendamentos : [];
-      } catch { return []; }
-    }
-
-    // =======================
-    // Carregar + Renderizar
-    // =======================
-    let AGENDAMENTOS = [];
-
-    async function carregarAgendamentos() {
-      let lista = [];
-      try {
-        const api = await apiGet('/agendamentos');
-        lista = api;
-        document.getElementById('lastSync').textContent =
-          'Atualizado: ' + new Date().toLocaleTimeString('pt-BR');
-      } catch (e) {
-        // se foi 401, o modal já foi exibido por apiGet/apiPatch/apiDelete
-        if (String(e.message).includes('401')) return;
-        console.warn('Falha ao buscar na API, usando localStorage:', e.message);
-        showAlert('error', 'Não foi possível sincronizar com o servidor. Exibindo dados locais.');
-        lista = getLocalAgendamentos();
-      }
-
-      // deduplicar por id (_id | id)
-      const map = new Map();
-      for (const ag of lista.concat(getLocalAgendamentos())) {
-        const id = getId(ag);
-        if (!id) continue;
-        map.set(id, { ...ag, _id: id, id });
-      }
-      AGENDAMENTOS = Array.from(map.values());
-      renderLista();
-    }
-
-    function renderLista() {
-      const wrap = document.getElementById('lista');
-      wrap.innerHTML = '';
-
-      const q = (document.getElementById('busca').value || '').toLowerCase();
-      const fStatus = (document.getElementById('filtroStatus').value || '').toLowerCase();
-
-      const filtrados = AGENDAMENTOS.filter(ag => {
-        const hay =
-          (ag.nome || '').toLowerCase().includes(q) ||
-          (ag.telefone || '').toLowerCase().includes(q) ||
-          (ag.servico || ag.servicos?.join(', ') || '').toLowerCase().includes(q);
-        const statusOk = !fStatus || (ag.status || 'pendente').toLowerCase() === fStatus;
-        return hay && statusOk;
-      });
-
-      if (filtrados.length === 0) {
-        wrap.innerHTML = `<div class="text-white/60 text-center py-12 border border-dashed border-gray-700 rounded-xl">
-          Nenhum agendamento encontrado.
-        </div>`;
-        return;
-      }
-
-      const tpl = document.getElementById('tpl-card');
-      filtrados
-        .sort((a, b) => (String(b.data)+String(b.horario)).localeCompare(String(a.data)+String(a.horario)))
-        .forEach(ag => wrap.appendChild(criarCard(tpl, ag)));
-    }
-
-    function criarCard(tpl, ag) {
-      const node = tpl.content.firstElementChild.cloneNode(true);
-      const id = getId(ag);
-      node.dataset.id = id;
-
-      const nomeEl = node.querySelector('.nome');
-      const telEl  = node.querySelector('.tel');
-      const servEl = node.querySelector('.servico');
-      const dataEl = node.querySelector('.data');
-      const horaEl = node.querySelector('.horario');
-      const criEl  = node.querySelector('.criado');
-      const badge  = node.querySelector('.status-badge');
-      const select = node.querySelector('.seletor-status');
-      const btnSalvar  = node.querySelector('.btn-salvar');
-      const btnExcluir = node.querySelector('.btn-excluir');
-
-      const status = (ag.status || 'pendente').toLowerCase();
-
-      nomeEl.textContent = ag.nome || '—';
-      telEl.textContent  = ag.telefone || '—';
-      servEl.textContent = ag.servico || (Array.isArray(ag.servicos) ? ag.servicos.join(', ') : '—');
-      dataEl.textContent = ag.data ? ag.data.split('-').reverse().join('/') : '—';
-      horaEl.textContent = ag.horario || '—';
-      criEl.textContent  = fmtDateBR(ag.createdAt || ag.criadoEm || ag.timestamp);
-
-      badge.textContent = statusLabel(status);
-      badge.className = 'ml-2 text-xs px-2 py-1 rounded-full align-middle status-badge ' + badgeClasses(status);
-      select.value = status;
-
-      select.addEventListener('change', () => {
-        const novo = select.value;
-        badge.textContent = statusLabel(novo);
-        badge.className = 'ml-2 text-xs px-2 py-1 rounded-full align-middle status-badge ' + badgeClasses(novo);
-      });
-
-      btnSalvar.addEventListener('click', async () => {
-        const novoStatus = select.value;
-        if (!id) return showAlert('error', 'ID ausente neste agendamento.');
-
-        btnSalvar.disabled = true;
-        const oldText = btnSalvar.textContent;
-        btnSalvar.textContent = 'Salvando...';
         try {
-          await apiPatch(`/agendamentos/${id}`, { status: novoStatus });
-          const idx = AGENDAMENTOS.findIndex(x => getId(x) === id);
-          if (idx >= 0) AGENDAMENTOS[idx].status = novoStatus;
-          showAlert('success', 'Status atualizado com sucesso.');
-        } catch (e) {
-          if (!String(e.message).includes('401')) {
-            showAlert('error', `Erro ao atualizar status: ${e.message}`);
-          }
+          await excluirAgendamento(agendamentoId);
+          mostrarMensagem('Agendamento excluído com sucesso!', 'success');
+          carregarEMostrarAgendamentos(); // Recarrega a lista
+        } catch (err) {
+          mostrarMensagem('Erro ao excluir agendamento: ' + err.message, 'error');
         } finally {
-          btnSalvar.disabled = false;
-          btnSalvar.textContent = oldText;
+          btn.disabled = false;
+          btn.textContent = originalText;
         }
       });
+    });
+  }
 
-      btnExcluir.addEventListener('click', async () => {
-        if (!id) return showAlert('error', 'ID ausente neste agendamento.');
-        const ok = confirm('Tem certeza que deseja excluir este agendamento?');
-        if (!ok) return;
+  function mostrarMensagem(texto, tipo) {
+    const msg = document.getElementById('agendamentosMsg');
+    msg.textContent = texto;
+    msg.className = `mt-4 p-3 rounded-lg ${tipo === 'error' 
+      ? 'bg-red-900/50 border border-red-500 text-red-200' 
+      : 'bg-green-900/50 border border-green-500 text-green-200'}`;
+    msg.classList.remove('hidden');
+    setTimeout(() => msg.classList.add('hidden'), 4000);
+  }
 
-        btnExcluir.disabled = true;
-        const old = btnExcluir.textContent;
-        btnExcluir.textContent = 'Excluindo...';
-        try {
-          await apiDelete(`/agendamentos/${id}`);
-          AGENDAMENTOS = AGENDAMENTOS.filter(x => getId(x) !== id);
-          node.remove();
-          showAlert('success', 'Agendamento excluído.');
-        } catch (e) {
-          if (!String(e.message).includes('401')) {
-            showAlert('error', `Erro ao excluir: ${e.message}`);
-          }
-        } finally {
-          btnExcluir.disabled = false;
-          btnExcluir.textContent = old;
-        }
-      });
+  function filtrarAgendamentos() {
+    const filtroData = document.getElementById('filtroData').value;
+    const filtroStatus = document.getElementById('filtroStatus').value;
+    
+    let agendamentosFiltrados = [...database.agendamentos];
 
-      return node;
+    if (filtroData) {
+      agendamentosFiltrados = agendamentosFiltrados.filter(ag => ag.data === filtroData);
     }
 
-    // =======================
-    // Eventos UI
-    // =======================
-    document.getElementById('btnRecarregar').addEventListener('click', carregarAgendamentos);
-    document.getElementById('busca').addEventListener('input', renderLista);
-    document.getElementById('filtroStatus').addEventListener('change', renderLista);
+    if (filtroStatus) {
+      agendamentosFiltrados = agendamentosFiltrados.filter(ag => ag.status === filtroStatus);
+    }
 
-    // start: se não houver sessão, abrir login; senão carregar lista
-    (async () => {
-      const sid = getSessionId();
-      if (!sid) {
-        showLogin();
-      } else {
-        try {
-          await carregarAgendamentos();
-        } catch {
-          showLogin('Sessão inválida ou expirada. Faça login.');
-        }
-      }
-    })();
-  </script>
+    mostrarAgendamentos(agendamentosFiltrados);
+  }
+
+  // Event listeners para agendamentos
+  document.getElementById('recarregarAgendamentos')?.addEventListener('click', carregarEMostrarAgendamentos);
+  
+  document.getElementById('filtroData')?.addEventListener('change', filtrarAgendamentos);
+  document.getElementById('filtroStatus')?.addEventListener('change', filtrarAgendamentos);
+  
+  document.getElementById('limparFiltros')?.addEventListener('click', () => {
+    document.getElementById('filtroData').value = '';
+    document.getElementById('filtroStatus').value = '';
+    mostrarAgendamentos(database.agendamentos);
+  });
+</script>
+
 </body>
+
 </html>
