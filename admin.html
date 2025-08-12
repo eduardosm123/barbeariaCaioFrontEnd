@@ -301,7 +301,7 @@
         const horarios = await apiGet('/horarios');
         database.horarios = horarios;
       } catch (err) {
-        console.warn('Erro ao carregar horários:', err);
+        console.warn('Error loading schedules:', err);
       }
 
       renderGrid();
@@ -358,7 +358,8 @@
         database.horarios = horarios;
         marcarCheckboxes(); // atualiza os checkboxes com os dados mais recentes
       } catch (err) {
-        console.warn('Erro ao recarregar horários:', err);
+       
+        console.warn('Error reloading schedules:', err);
       }
 
       sessionStorage.setItem('adminLoggedIn', 'true');
@@ -382,7 +383,7 @@
         await apiPost('/auth/logout', {});
       }
     } catch (err) {
-      console.warn('Erro ao fazer logout no servidor:', err);
+      console.warn('Error logging out of server:', err);
     } finally {
       // Sempre limpa o estado local
       sessionId = null;
@@ -493,11 +494,11 @@
     try {
       const atualizado = await apiPatch('/horarios', novo);
       database.horarios = atualizado; // mantém em memória
-      saveMsg.textContent = 'Horários salvos com sucesso!';
+      saveMsg.textContent = 'Schedules saved successfully!';
       saveMsg.className = 'mt-4 p-3 rounded-lg bg-green-900/50 border border-green-500 text-green-200';
     } catch (err) {
       console.error(err);
-      saveMsg.textContent = 'Falha ao salvar horários. Verifique o servidor.';
+      saveMsg.textContent = 'Failed to save schedules. Please check the server.';
       saveMsg.className = 'mt-4 p-3 rounded-lg bg-red-900/50 border border-red-500 text-red-200';
     } finally {
       saveMsg.classList.remove('hidden');
@@ -524,11 +525,11 @@
     }
 
     if (!sessionId) {
-      return show('error', 'Sessão expirada. Faça login novamente.');
+      return show('error', 'Session expired. Please log in again.');
     }
 
-    if (novaSenha !== confirmar) return show('error', 'As senhas não coincidem!');
-    if (novaSenha.length < 6) return show('error', 'A nova senha deve ter pelo menos 6 caracteres!');
+    if (novaSenha !== confirmar) return show('error', 'Passwords do not match!');
+    if (novaSenha.length < 6) return show('error', 'New password must be at least 6 characters long!');
 
     try {
       // First verify if the current password is correct by attempting login
