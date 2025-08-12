@@ -1,12 +1,8 @@
 # Sistema de Administração - Barbearia VIP
 
-## Como usar o sistema
 
-### 1. Acessar o sistema administrativo
-- Abra o arquivo `admin.html` no seu navegador
-- Use as credenciais padrão:
-  - **Usuário:** admin
-  - **Senha:** 1234567
+
+ 
 
 ### 2. Gerenciar horários
 - Na aba "Gerenciar Horários", você pode:
