@@ -210,6 +210,34 @@
   };
   let bootDone = false;
   let sessionId = null; // Para gerenciar a sessão
+  
+  // Funções para gerenciar cookies
+  function setCookie(name, value, days = 7) {
+    const expires = new Date();
+    expires.setTime(expires.getTime() + (days * 24 * 60 * 60 * 1000));
+    document.cookie = `${name}=${encodeURIComponent(value)};expires=${expires.toUTCString()};path=/;SameSite=Strict`;
+  }
+
+  function getCookie(name) {
+    const nameEQ = name + "=";
+    const ca = document.cookie.split(';');
+    for (let i = 0; i < ca.length; i++) {
+      let c = ca[i];
+      while (c.charAt(0) === ' ') c = c.substring(1, c.length);
+      if (c.indexOf(nameEQ) === 0) return decodeURIComponent(c.substring(nameEQ.length, c.length));
+    }
+    return null;
+  }
+
+  function deleteCookie(name) {
+    document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/;`;
+  }
+
+  // Credenciais armazenadas para uso nas operações
+  let storedCredentials = {
+    username: '',
+    password: ''
+  };
 
   // Helpers de fetch com session ID
   async function apiGet(path) {
@@ -244,6 +272,15 @@
       headers['X-Session-Id'] = sessionId;
     }
     
+    // Se for atualização de horários, inclui credenciais no body
+    if (path === '/horarios' && storedCredentials.username && storedCredentials.password) {
+      data = {
+        ...data,
+        username: storedCredentials.username,
+        password: storedCredentials.password
+      };
+    }
+    
     const r = await fetch(`${API}${path}`, {
       method: 'PATCH',
       headers,
@@ -271,6 +308,14 @@
   // Inicialização
   document.addEventListener('DOMContentLoaded', async () => {
     try {
+      // Carrega credenciais dos cookies se existirem
+      const savedUsername = getCookie('adminUsername');
+      const savedPassword = getCookie('adminPassword');
+      if (savedUsername && savedPassword) {
+        storedCredentials.username = savedUsername;
+        storedCredentials.password = savedPassword;
+      }
+
       // Verifica se há sessão salva
       const savedSessionId = sessionStorage.getItem('adminSessionId');
       if (savedSessionId) {
@@ -349,6 +394,14 @@
       sessionId = loginData.sessionId;
       sessionStorage.setItem('adminSessionId', sessionId);
       
+      // Salva as credenciais em cookies para uso posterior
+      setCookie('adminUsername', username, 7);
+      setCookie('adminPassword', password, 7);
+      
+      // Atualiza as credenciais armazenadas
+      storedCredentials.username = username;
+      storedCredentials.password = password;
+      
       // Dados do admin vêm na resposta do login
       database.admin = loginData.admin;
       
@@ -388,6 +441,15 @@
       sessionId = null;
       sessionStorage.removeItem('adminLoggedIn');
       sessionStorage.removeItem('adminSessionId');
+      
+      // Limpa os cookies das credenciais
+      deleteCookie('adminUsername');
+      deleteCookie('adminPassword');
+      
+      // Limpa as credenciais armazenadas
+      storedCredentials.username = '';
+      storedCredentials.password = '';
+      
       window.location.href = 'index.html';
     }
   });
@@ -496,8 +558,8 @@
       saveMsg.textContent = 'Horários salvos com sucesso!';
       saveMsg.className = 'mt-4 p-3 rounded-lg bg-green-900/50 border border-green-500 text-green-200';
     } catch (err) {
-      console.error(err);
-      saveMsg.textContent = 'Falha ao salvar horários. Verifique o servidor.';
+      console.error('Erro ao salvar horários:', err);
+      saveMsg.textContent = 'Falha ao salvar horários. Verifique o servidor ou credenciais.';
       saveMsg.className = 'mt-4 p-3 rounded-lg bg-red-900/50 border border-red-500 text-red-200';
     } finally {
       saveMsg.classList.remove('hidden');
@@ -544,6 +606,13 @@
 
       const updated = await apiPatch('/admin/1', { password: novaSenha });
       database.admin = { ...database.admin, ...updated };
+      
+      // Atualiza as credenciais armazenadas com a nova senha
+      storedCredentials.password = novaSenha;
+      
+      // Atualiza o cookie com a nova senha
+      setCookie('adminPassword', novaSenha, 7);
+      
       (document.getElementById('senhaForm')).reset();
       show('success', 'Password changed successfully!');
     } catch (err) {
