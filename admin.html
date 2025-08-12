@@ -8,11 +8,7 @@
   <script>
     tailwind.config = {
       darkMode: 'class',
-      theme: {
-        extend: {
-          colors: { gold: '#D4AF37', darkgold: '#B8941F' }
-        }
-      }
+      theme: { extend: { colors: { gold:'#D4AF37', darkgold:'#B8941F' } } }
     };
   </script>
 </head>
@@ -22,7 +18,10 @@
     <nav class="container mx-auto px-4 py-4 flex items-center justify-between">
       <a href="index.html" class="text-white/70 hover:text-white">← Voltar</a>
       <div class="text-2xl font-bold text-gold">Admin · Agendamentos</div>
-      <div class="text-sm text-white/60" id="lastSync">—</div>
+      <div class="flex items-center gap-4">
+        <div class="text-sm text-white/60" id="lastSync">—</div>
+        <button id="btnSair" class="text-white/70 hover:text-white text-sm border border-gray-700 px-3 py-1 rounded">Sair</button>
+      </div>
     </nav>
   </header>
 
@@ -58,6 +57,26 @@
   <main class="container mx-auto px-4 my-6">
     <div id="lista" class="grid gap-4"></div>
   </main>
+
+  <!-- Login Modal (aparece se não houver sessão) -->
+  <div id="loginModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+    <div class="bg-gray-900 border border-gray-700 rounded-2xl w-full max-w-sm p-6">
+      <h2 class="text-xl font-semibold mb-4">Entrar</h2>
+      <p class="text-white/70 text-sm mb-4">Faça login para gerenciar os agendamentos.</p>
+      <form id="loginForm" class="space-y-3">
+        <div>
+          <label class="block text-sm mb-1 text-white/80" for="loginUser">Usuário</label>
+          <input id="loginUser" type="text" required class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2">
+        </div>
+        <div>
+          <label class="block text-sm mb-1 text-white/80" for="loginPass">Senha</label>
+          <input id="loginPass" type="password" required class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2">
+        </div>
+        <button class="w-full bg-gold hover:bg-darkgold text-black font-semibold rounded px-4 py-2">Entrar</button>
+      </form>
+      <p id="loginMsg" class="text-red-300 text-sm mt-3 hidden"></p>
+    </div>
+  </div>
 
   <template id="tpl-card">
     <div class="rounded-xl bg-gray-800 border border-gray-700 p-5" data-id="">
@@ -99,10 +118,64 @@
 
   <script>
     // =======================
-    // Config / Helpers
+    // Config
     // =======================
     const API_BASE = 'https://barbeariacaio.onrender.com';
 
+    // =======================
+    // Sessão
+    // =======================
+    const getSessionId = () => localStorage.getItem('sessionId');
+    const setSessionId = (sid) => localStorage.setItem('sessionId', sid || '');
+    const clearSession = () => localStorage.removeItem('sessionId');
+
+    const showLogin = (msg='') => {
+      document.getElementById('loginModal').classList.remove('hidden');
+      document.getElementById('loginModal').classList.add('flex');
+      const p = document.getElementById('loginMsg');
+      if (msg) { p.textContent = msg; p.classList.remove('hidden'); } else { p.classList.add('hidden'); }
+    };
+    const hideLogin = () => {
+      document.getElementById('loginModal').classList.add('hidden');
+      document.getElementById('loginModal').classList.remove('flex');
+      document.getElementById('loginMsg').classList.add('hidden');
+    };
+
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const username = document.getElementById('loginUser').value.trim();
+      const password = document.getElementById('loginPass').value.trim();
+
+      try {
+        const r = await fetch(`${API_BASE}/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password })
+        });
+        if (!r.ok) {
+          let msg = 'Falha no login.';
+          try { const j = await r.json(); if (j?.message) msg = j.message; } catch {}
+          throw new Error(msg);
+        }
+        const j = await r.json();
+        if (!j.sessionId) throw new Error('Resposta sem sessionId.');
+        setSessionId(j.sessionId);
+        hideLogin();
+        await carregarAgendamentos();
+      } catch (err) {
+        document.getElementById('loginMsg').textContent = err.message;
+        document.getElementById('loginMsg').classList.remove('hidden');
+      }
+    });
+
+    document.getElementById('btnSair').addEventListener('click', () => {
+      clearSession();
+      showLogin('Sessão encerrada. Faça login novamente.');
+    });
+
+    // =======================
+    // Helpers UI
+    // =======================
     const getId = (ag) => ag?._id ?? ag?.id ?? null;
 
     const fmtDateBR = (str) => {
@@ -140,20 +213,30 @@
     };
 
     // =======================
-    // API helpers
+    // API helpers (sempre com x-session-id)
     // =======================
     async function apiGet(path) {
-      const r = await fetch(`${API_BASE}${path}`, { cache: 'no-store' });
+      const sid = getSessionId();
+      const r = await fetch(`${API_BASE}${path}`, {
+        cache: 'no-store',
+        headers: sid ? { 'x-session-id': sid } : {}
+      });
+      if (r.status === 401) { showLogin('Sessão inválida ou expirada. Faça login.'); throw new Error('401 Unauthorized'); }
       if (!r.ok) throw new Error(`GET ${path} -> ${r.status}`);
       return r.json();
     }
 
     async function apiPatch(path, body) {
+      const sid = getSessionId();
       const r = await fetch(`${API_BASE}${path}`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...(sid ? { 'x-session-id': sid } : {}) },
         body: JSON.stringify(body || {})
       });
+      if (r.status === 401) {
+        showLogin('Sessão inválida ou expirada. Faça login.');
+        throw new Error('401 Unauthorized');
+      }
       if (!r.ok) {
         let message = `PATCH ${path} -> ${r.status}`;
         try { const j = await r.json(); if (j?.message) message = j.message; } catch {}
@@ -163,9 +246,16 @@
     }
 
     async function apiDelete(path) {
-      const r = await fetch(`${API_BASE}${path}`, { method: 'DELETE' });
+      const sid = getSessionId();
+      const r = await fetch(`${API_BASE}${path}`, {
+        method: 'DELETE',
+        headers: sid ? { 'x-session-id': sid } : {}
+      });
+      if (r.status === 401) {
+        showLogin('Sessão inválida ou expirada. Faça login.');
+        throw new Error('401 Unauthorized');
+      }
       if (!r.ok) throw new Error(`DELETE ${path} -> ${r.status}`);
-      // alguns backends devolvem vazio
       try { return await r.json(); } catch { return true; }
     }
 
@@ -187,23 +277,24 @@
     async function carregarAgendamentos() {
       let lista = [];
       try {
-        const api = await apiGet('/agendamentos'); // preferir API
+        const api = await apiGet('/agendamentos');
         lista = api;
         document.getElementById('lastSync').textContent =
           'Atualizado: ' + new Date().toLocaleTimeString('pt-BR');
       } catch (e) {
-        // fallback local
+        // se foi 401, o modal já foi exibido por apiGet/apiPatch/apiDelete
+        if (String(e.message).includes('401')) return;
         console.warn('Falha ao buscar na API, usando localStorage:', e.message);
         showAlert('error', 'Não foi possível sincronizar com o servidor. Exibindo dados locais.');
         lista = getLocalAgendamentos();
       }
 
-      // deduplicar por id (aceita _id | id)
+      // deduplicar por id (_id | id)
       const map = new Map();
       for (const ag of lista.concat(getLocalAgendamentos())) {
         const id = getId(ag);
         if (!id) continue;
-        map.set(id, { ...ag, _id: id, id }); // normaliza presença de ambos
+        map.set(id, { ...ag, _id: id, id });
       }
       AGENDAMENTOS = Array.from(map.values());
       renderLista();
@@ -213,7 +304,6 @@
       const wrap = document.getElementById('lista');
       wrap.innerHTML = '';
 
-      // filtros
       const q = (document.getElementById('busca').value || '').toLowerCase();
       const fStatus = (document.getElementById('filtroStatus').value || '').toLowerCase();
 
@@ -235,7 +325,6 @@
 
       const tpl = document.getElementById('tpl-card');
       filtrados
-        // ordenar por data/hora (mais recentes primeiro)
         .sort((a, b) => (String(b.data)+String(b.horario)).localeCompare(String(a.data)+String(a.horario)))
         .forEach(ag => wrap.appendChild(criarCard(tpl, ag)));
     }
@@ -265,14 +354,11 @@
       horaEl.textContent = ag.horario || '—';
       criEl.textContent  = fmtDateBR(ag.createdAt || ag.criadoEm || ag.timestamp);
 
-      // badge + select
       badge.textContent = statusLabel(status);
       badge.className = 'ml-2 text-xs px-2 py-1 rounded-full align-middle status-badge ' + badgeClasses(status);
       select.value = status;
 
-      // eventos
       select.addEventListener('change', () => {
-        // só muda o visual; salvar envia ao servidor
         const novo = select.value;
         badge.textContent = statusLabel(novo);
         badge.className = 'ml-2 text-xs px-2 py-1 rounded-full align-middle status-badge ' + badgeClasses(novo);
@@ -287,12 +373,13 @@
         btnSalvar.textContent = 'Salvando...';
         try {
           await apiPatch(`/agendamentos/${id}`, { status: novoStatus });
-          // refletir localmente
           const idx = AGENDAMENTOS.findIndex(x => getId(x) === id);
           if (idx >= 0) AGENDAMENTOS[idx].status = novoStatus;
           showAlert('success', 'Status atualizado com sucesso.');
         } catch (e) {
-          showAlert('error', `Erro ao atualizar status: ${e.message}`);
+          if (!String(e.message).includes('401')) {
+            showAlert('error', `Erro ao atualizar status: ${e.message}`);
+          }
         } finally {
           btnSalvar.disabled = false;
           btnSalvar.textContent = oldText;
@@ -313,7 +400,9 @@
           node.remove();
           showAlert('success', 'Agendamento excluído.');
         } catch (e) {
-          showAlert('error', `Erro ao excluir: ${e.message}`);
+          if (!String(e.message).includes('401')) {
+            showAlert('error', `Erro ao excluir: ${e.message}`);
+          }
         } finally {
           btnExcluir.disabled = false;
           btnExcluir.textContent = old;
@@ -330,8 +419,19 @@
     document.getElementById('busca').addEventListener('input', renderLista);
     document.getElementById('filtroStatus').addEventListener('change', renderLista);
 
-    // start
-    carregarAgendamentos();
+    // start: se não houver sessão, abrir login; senão carregar lista
+    (async () => {
+      const sid = getSessionId();
+      if (!sid) {
+        showLogin();
+      } else {
+        try {
+          await carregarAgendamentos();
+        } catch {
+          showLogin('Sessão inválida ou expirada. Faça login.');
+        }
+      }
+    })();
   </script>
 </body>
 </html>
