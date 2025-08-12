@@ -645,7 +645,7 @@
   }
 
   // -----------------------
-  // Sistema de Horários Dinâmicos (API -> localStorage -> fallback)
+  // Sistema de Horários Dinâmicos (API -> localStorage)
   // -----------------------
   const API_BASE = 'https://barbeariacaio.onrender.com';
 
@@ -660,30 +660,22 @@
     'Domingo': 'domingo'
   };
 
-  // Fallback padrão
-  const DEFAULT_HORARIOS = {
-    segunda: ["08:00","08:30","09:00","09:30","10:00","10:30","11:00","11:30","14:00","14:30","15:00","15:30","16:00","16:30","17:00","17:30","18:00","18:30","19:00","19:30","20:00","20:30","21:00","21:30","22:00"],
-    terca:   ["08:00","08:30","09:00","09:30","10:00","10:30","11:00","11:30","14:00","14:30","15:00","15:30","16:00","16:30","17:00","17:30","18:00","18:30","19:00","19:30","20:00","20:30","21:00","21:30","22:00"],
-    quarta:  ["08:00","08:30","09:00","09:30","10:00","10:30","11:00","11:30","14:00","14:30","15:00","15:30","16:00","16:30","17:00","17:30","18:00","18:30","19:00","19:30","20:00","20:30","21:00","21:30","22:00"],
-    quinta:  ["08:00","08:30","09:00","09:30","10:00","10:30","11:00","11:30","14:00","14:30","15:00","15:30","16:00","16:30","17:00","17:30","18:00","18:30","19:00","19:30","20:00","20:30","21:00","21:30","22:00"],
-    sexta:   ["08:00","08:30","09:00","09:30","10:00","10:30","11:00","11:30","14:00","14:30","15:00","15:30","16:00","16:30","17:00","17:30","18:00","18:30","19:00","19:30","20:00","20:30","21:00","21:30","22:00"],
-    sabado:  ["08:00","08:30","09:00","09:30","10:00","10:30","11:00","11:30","14:00","14:30","15:00","15:30","16:00","16:30","17:00","17:30","18:00","18:30","19:00","19:30","20:00","20:30","21:00","21:30","22:00"],
-    domingo: []
-  };
-
   let horariosCache = null;
 
   async function carregarHorariosDisponiveis() {
     if (horariosCache) return horariosCache;
 
+    console.log('🔄 Carregando horários da API...');
+
     // 1) Tenta API
     try {
       const r = await fetch(`${API_BASE}/horarios`, { 
-        cache: 'no-store',
-        credentials: 'include' // inclui cookies se necessário
+        cache: 'no-store'
       });
-      if (!r.ok) throw new Error(r.status);
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
       const data = await r.json();
+
+      console.log('✅ Horários carregados da API:', data);
 
       // persiste no localStorage para uso offline
       const db = JSON.parse(localStorage.getItem('barbeariaAdmin') || '{}');
@@ -692,18 +684,25 @@
 
       horariosCache = data;
       return data;
-    } catch (_) {
-      // 2) Tenta localStorage
+    } catch (error) {
+      console.warn('⚠️ Erro ao carregar da API:', error);
+      
+      // 2) Tenta localStorage como backup
       const saved = localStorage.getItem('barbeariaAdmin');
       if (saved) {
         const db = JSON.parse(saved);
         if (db.horarios) {
+          console.log('📦 Usando horários do localStorage:', db.horarios);
           horariosCache = db.horarios;
           return horariosCache;
         }
       }
-      // 3) Fallback padrão
-      horariosCache = DEFAULT_HORARIOS;
+      
+      // 3) Se não tem nada, retorna estrutura vazia
+      console.log('❌ Nenhum horário disponível');
+      horariosCache = {
+        segunda: [], terca: [], quarta: [], quinta: [], sexta: [], sabado: [], domingo: []
+      };
       return horariosCache;
     }
   }
@@ -725,6 +724,7 @@
 
   // Atualiza horários sempre que a data muda
   dataInput.addEventListener('change', async function () {
+    console.log('📅 Data selecionada:', this.value);
     const dataSelecionada = this.value;
     const horarioSelect = document.getElementById('horario');
 
@@ -737,12 +737,22 @@
     const data = new Date(`${dataSelecionada}T00:00:00`);
     const nomeDia = data.toLocaleDateString('pt-BR', { weekday: 'long' });
     const nomeDiaFormatado = nomeDia.charAt(0).toUpperCase() + nomeDia.slice(1); // ex: "terça-feira" -> "Terça-feira"
+    console.log('📆 Dia da semana detectado:', nomeDiaFormatado);
 
     const diaChave = diasSemana[nomeDiaFormatado];
+    console.log('🔑 Chave do dia:', diaChave);
+    
     const horariosDisponiveis = await carregarHorariosDisponiveis();
+    console.log('⏰ Horários disponíveis para', diaChave, ':', horariosDisponiveis[diaChave]);
 
     // Limpar e popular o select
     horarioSelect.innerHTML = '<option value="">Selecione um horário</option>';
+    
+    if (!horariosDisponiveis) {
+      horarioSelect.innerHTML = '<option value="">Erro ao carregar horários</option>';
+      return;
+    }
+    
     if (diaChave && Array.isArray(horariosDisponiveis[diaChave])) {
       const horarios = horariosDisponiveis[diaChave];
       if (horarios.length === 0) {
