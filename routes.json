@@ -1,0 +1,6 @@
+{
+  "/api/*": "/$1",
+  "/api/admin": "/admin",
+  "/api/horarios": "/horarios",
+  "/api/agendamentos": "/agendamentos"
+}

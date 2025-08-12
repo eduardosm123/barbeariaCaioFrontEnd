@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="dark">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin - Barbearia VIP</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: { colors: { gold: '#D4AF37', darkgold: '#B8941F' } }
+            }
+        }
+    </script>
+</head>
+
+<body class="bg-gray-900 text-white min-h-screen">
+
+    <!-- Login -->
+    <div id="loginScreen" class="min-h-screen flex items-center justify-center p-4">
+        <div class="bg-gray-800 rounded-2xl shadow-2xl p-8 w-full max-w-md">
+            <div class="text-center mb-8">
+                <h1 class="text-3xl font-bold text-gold mb-2">Barbearia VIP</h1>
+                <p class="text-gray-400">Área Administrativa</p>
+            </div>
+
+            <form id="loginForm" class="space-y-4">
+                <div>
+                    <label for="username" class="block text-sm font-medium text-gray-300 mb-2">Usuário</label>
+                    <input id="username" required
+                        class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-gold focus:border-transparent text-white">
+                </div>
+
+                <div>
+                    <label for="password" class="block text-sm font-medium text-gray-300 mb-2">Senha</label>
+                    <div class="relative">
+                        <input type="password" id="password" required
+                            class="w-full px-3 py-2 pr-10 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-gold focus:border-transparent text-white">
+                        <button type="button" class="absolute inset-y-0 right-0 pr-3 flex items-center toggle-password"
+                            data-target="password" aria-label="Mostrar/ocultar senha">
+                            <svg class="h-5 w-5 text-gray-400 hover:text-gray-300" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <button type="submit" id="loginBtn"
+                    class="w-full bg-gold hover:bg-darkgold text-black font-semibold py-2 px-4 rounded-lg transition-colors"
+                    disabled>
+                    Entrar
+                </button>
+            </form>
+
+            <div id="loginError" class="mt-4 p-3 bg-red-900/50 border border-red-500 rounded-lg text-red-200 hidden">
+                Usuário ou senha incorretos!
+            </div>
+            <div id="apiError" class="mt-4 p-3 bg-red-900/50 border border-red-500 rounded-lg text-red-200 hidden">
+            </div>
+        </div>
+    </div>
+
+    <!-- Dashboard -->
+    <div id="adminDashboard" class="hidden">
+        <!-- Header -->
+        <header class="bg-gray-800 border-b border-gray-700 p-4">
+            <div class="container mx-auto flex items-center justify-between">
+                <h1 class="text-2xl font-bold text-gold">Painel Administrativo</h1>
+                <div class="flex items-center space-x-4">
+                    <span class="text-gray-300">Bem-vindo, <span id="adminName">Admin</span></span>
+                    <button id="logoutBtn"
+                        class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors">Sair</button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Nav -->
+        <nav class="bg-gray-800 border-b border-gray-700">
+            <div class="container mx-auto">
+                <div class="flex space-x-8">
+                    <button class="tab-btn active px-4 py-3 text-white border-b-2 border-gold"
+                        data-tab="horarios">Gerenciar Horários</button>
+                    <button
+                        class="tab-btn px-4 py-3 text-gray-400 hover:text-white border-b-2 border-transparent hover:border-gray-600"
+                        data-tab="senha">Alterar Senha</button>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Content -->
+        <main class="container mx-auto p-6">
+            <!-- Horários -->
+            <div id="horariosTab" class="tab-content">
+                <div class="bg-gray-800 rounded-lg p-6">
+                    <h2 class="text-xl font-bold mb-6">Gerenciar Horários Disponíveis</h2>
+
+                    <div id="diasGrid" class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <!-- cartões de dias gerados via JS -->
+                    </div>
+
+                    <div class="flex justify-between mt-8">
+                        <div class="space-x-4">
+                            <button id="selectAllBtn"
+                                class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors">Selecionar
+                                Todos</button>
+                            <button id="deselectAllBtn"
+                                class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors">Desmarcar
+                                Todos</button>
+                        </div>
+                        <button id="saveHorariosBtn"
+                            class="bg-gold hover:bg-darkgold text-black font-semibold px-6 py-2 rounded-lg transition-colors">
+                            Salvar Alterações
+                        </button>
+                    </div>
+
+                    <div id="saveMsg" class="mt-4 hidden"></div>
+                </div>
+            </div>
+
+            <!-- Alterar Senha -->
+            <div id="senhaTab" class="tab-content hidden">
+                <div class="bg-gray-800 rounded-lg p-6 max-w-md">
+                    <h2 class="text-xl font-bold mb-6">Alterar Senha</h2>
+
+                    <form id="senhaForm" class="space-y-4">
+                        <div>
+                            <label for="senhaAtual" class="block text-sm font-medium text-gray-300 mb-2">Senha
+                                Atual</label>
+                            <div class="relative">
+                                <input type="password" id="senhaAtual" required
+                                    class="w-full px-3 py-2 pr-10 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-gold focus:border-transparent text-white">
+                                <button type="button"
+                                    class="absolute inset-y-0 right-0 pr-3 flex items-center toggle-password"
+                                    data-target="senhaAtual" aria-label="Mostrar/ocultar senha">
+                                    <svg class="h-5 w-5 text-gray-400 hover:text-gray-300" fill="none"
+                                        stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label for="novaSenha" class="block text-sm font-medium text-gray-300 mb-2">Nova
+                                Senha</label>
+                            <div class="relative">
+                                <input type="password" id="novaSenha" required
+                                    class="w-full px-3 py-2 pr-10 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-gold focus:border-transparent text-white">
+                                <button type="button"
+                                    class="absolute inset-y-0 right-0 pr-3 flex items-center toggle-password"
+                                    data-target="novaSenha" aria-label="Mostrar/ocultar senha">
+                                    <svg class="h-5 w-5 text-gray-400 hover:text-gray-300" fill="none"
+                                        stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label for="confirmarSenha" class="block text-sm font-medium text-gray-300 mb-2">Confirmar
+                                Nova Senha</label>
+                            <div class="relative">
+                                <input type="password" id="confirmarSenha" required
+                                    class="w-full px-3 py-2 pr-10 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-gold focus:border-transparent text-white">
+                                <button type="button"
+                                    class="absolute inset-y-0 right-0 pr-3 flex items-center toggle-password"
+                                    data-target="confirmarSenha" aria-label="Mostrar/ocultar senha">
+                                    <svg class="h-5 w-5 text-gray-400 hover:text-gray-300" fill="none"
+                                        stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+
+                        <button type="submit"
+                            class="bg-gold hover:bg-darkgold text-black font-semibold py-2 px-4 rounded-lg transition-colors">
+                            Alterar Senha
+                        </button>
+                    </form>
+
+                    <div id="senhaMessage" class="mt-4 p-3 rounded-lg hidden"></div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+ <script>
+  const API = 'https://barbeariacaio.onrender.com';
+
+  // Estado
+  let database = {
+    admin: { id: 1, username: '', password: '', email: '' },
+    horarios: { segunda: [], terca: [], quarta: [], quinta: [], sexta: [], sabado: [], domingo: [] }
+  };
+  let bootDone = false;
+  let sessionId = null; // Para gerenciar a sessão
+
+  // Helpers de fetch com session ID
+  async function apiGet(path) {
+    const headers = {};
+    if (sessionId) {
+      headers['X-Session-Id'] = sessionId;
+    }
+    
+    const r = await fetch(`${API}${path}`, { headers });
+    if (!r.ok) throw new Error(`GET ${path} -> ${r.status}`);
+    return r.json();
+  }
+  
+  async function apiPut(path, data) {
+    const headers = { 'Content-Type': 'application/json' };
+    if (sessionId) {
+      headers['X-Session-Id'] = sessionId;
+    }
+    
+    const r = await fetch(`${API}${path}`, {
+      method: 'PUT',
+      headers,
+      body: JSON.stringify(data)
+    });
+    if (!r.ok) throw new Error(`PUT ${path} -> ${r.status}`);
+    return r.json();
+  }
+  
+  async function apiPatch(path, data) {
+    const headers = { 'Content-Type': 'application/json' };
+    if (sessionId) {
+      headers['X-Session-Id'] = sessionId;
+    }
+    
+    const r = await fetch(`${API}${path}`, {
+      method: 'PATCH',
+      headers,
+      body: JSON.stringify(data)
+    });
+    if (!r.ok) throw new Error(`PATCH ${path} -> ${r.status}`);
+    return r.json();
+  }
+  
+  async function apiPost(path, data) {
+    const headers = { 'Content-Type': 'application/json' };
+    if (sessionId) {
+      headers['X-Session-Id'] = sessionId;
+    }
+    
+    const r = await fetch(`${API}${path}`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(data)
+    });
+    if (!r.ok) throw new Error(`POST ${path} -> ${r.status}`);
+    return r.json();
+  }
+
+  // Inicialização
+  document.addEventListener('DOMContentLoaded', async () => {
+    try {
+      // Verifica se há sessão salva
+      const savedSessionId = sessionStorage.getItem('adminSessionId');
+      if (savedSessionId) {
+        sessionId = savedSessionId;
+        
+        // Verifica se a sessão ainda é válida
+        try {
+          const verify = await apiGet('/auth/verify');
+          if (verify.valid) {
+            database.admin = verify.admin;
+            sessionStorage.setItem('adminLoggedIn', 'true');
+          } else {
+            // Sessão inválida, limpa
+            sessionId = null;
+            sessionStorage.removeItem('adminSessionId');
+            sessionStorage.removeItem('adminLoggedIn');
+          }
+        } catch (err) {
+          // Erro na verificação, limpa a sessão
+          sessionId = null;
+          sessionStorage.removeItem('adminSessionId');
+          sessionStorage.removeItem('adminLoggedIn');
+        }
+      }
+
+      // Carrega horários (não precisa de autenticação)
+      try {
+        const horarios = await apiGet('/horarios');
+        database.horarios = horarios;
+      } catch (err) {
+        console.warn('Erro ao carregar horários:', err);
+      }
+
+      renderGrid();
+      marcarCheckboxes();
+      
+      // Se já estava logado e sessão é válida, vai para o dashboard
+      if (sessionStorage.getItem('adminLoggedIn') && sessionId) {
+        showDashboard();
+      }
+
+      document.getElementById('loginBtn').disabled = false;
+      bootDone = true;
+    } catch (err) {
+      console.error(err);
+      const el = document.getElementById('apiError');
+      el.textContent = 'Não consegui conectar na API (https://barbeariacaio.onrender.com). Verifique a conexão e tente novamente.';
+      el.classList.remove('hidden');
+    }
+  });
+
+  // DOM
+  const loginScreen = document.getElementById('loginScreen');
+  const adminDashboard = document.getElementById('adminDashboard');
+  const loginForm = document.getElementById('loginForm');
+  const loginError = document.getElementById('loginError');
+  const logoutBtn = document.getElementById('logoutBtn');
+
+  // Login
+  loginForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (!bootDone) return;
+
+    const username = document.getElementById('username').value.trim();
+    const password = document.getElementById('password').value;
+    
+    const loginBtn = document.getElementById('loginBtn');
+    loginBtn.disabled = true;
+    loginBtn.textContent = 'Entrando...';
+
+    try {
+      // Tenta fazer login via API
+      const loginData = await apiPost('/auth/login', { username, password });
+      
+      // Salva o sessionId
+      sessionId = loginData.sessionId;
+      sessionStorage.setItem('adminSessionId', sessionId);
+      
+      // Dados do admin vêm na resposta do login
+      database.admin = loginData.admin;
+      
+      // Carrega os horários mais recentes
+      try {
+        const horarios = await apiGet('/horarios');
+        database.horarios = horarios;
+        marcarCheckboxes(); // atualiza os checkboxes com os dados mais recentes
+      } catch (err) {
+        console.warn('Erro ao recarregar horários:', err);
+      }
+
+      sessionStorage.setItem('adminLoggedIn', 'true');
+      document.getElementById('adminName').textContent = loginData.admin.username || 'Admin';
+      loginError.classList.add('hidden');
+      showDashboard();
+    } catch (err) {
+      console.error('Erro no login:', err);
+      loginError.classList.remove('hidden');
+    } finally {
+      loginBtn.disabled = false;
+      loginBtn.textContent = 'Entrar';
+    }
+  });
+
+  // Logout
+  logoutBtn.addEventListener('click', async () => {
+    try {
+      // Tenta fazer logout via API (limpa a sessão no servidor)
+      if (sessionId) {
+        await apiPost('/auth/logout', {});
+      }
+    } catch (err) {
+      console.warn('Erro ao fazer logout no servidor:', err);
+    } finally {
+      // Sempre limpa o estado local
+      sessionId = null;
+      sessionStorage.removeItem('adminLoggedIn');
+      sessionStorage.removeItem('adminSessionId');
+      window.location.href = 'index.html';
+    }
+  });
+
+  function showDashboard() {
+    loginScreen.classList.add('hidden');
+    adminDashboard.classList.remove('hidden');
+  }
+
+  // Abas
+  const tabBtns = document.querySelectorAll('.tab-btn');
+  const tabContents = document.querySelectorAll('.tab-content');
+  tabBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const tab = btn.dataset.tab;
+      tabBtns.forEach(b => { b.classList.remove('active', 'border-gold', 'text-white'); b.classList.add('text-gray-400', 'border-transparent'); });
+      btn.classList.add('active', 'border-gold', 'text-white'); btn.classList.remove('text-gray-400', 'border-transparent');
+      tabContents.forEach(c => c.classList.add('hidden'));
+      document.getElementById(`${tab}Tab`).classList.remove('hidden');
+    });
+  });
+
+  // ---- Horários (UI dinâmica)
+  const dias = [
+    { key: 'segunda', label: 'Segunda-feira', abbr: 'seg' },
+    { key: 'terca', label: 'Terça-feira', abbr: 'ter' },
+    { key: 'quarta', label: 'Quarta-feira', abbr: 'qua' },
+    { key: 'quinta', label: 'Quinta-feira', abbr: 'qui' },
+    { key: 'sexta', label: 'Sexta-feira', abbr: 'sex' },
+    { key: 'sabado', label: 'Sábado', abbr: 'sab' },
+    { key: 'domingo', label: 'Domingo', abbr: 'dom' }
+  ];
+
+  function gerarHalfHours(inicio = '08:00', fim = '22:00') {
+    const [hIni, mIni] = inicio.split(':').map(Number);
+    const [hFim, mFim] = fim.split(':').map(Number);
+    const start = hIni * 60 + mIni;
+    const end = hFim * 60 + mFim;
+    const out = [];
+    for (let t = start; t <= end; t += 30) {
+      const h = Math.floor(t / 60).toString().padStart(2, '0');
+      const m = (t % 60).toString().padStart(2, '0');
+      out.push(`${h}:${m}`);
+    }
+    return out;
+  }
+  const slots = gerarHalfHours('08:00', '22:00'); // grade completa; o que ficar marcado vem do backend
+
+  let gridRendered = false;
+  function renderGrid() {
+    if (gridRendered) return;
+    const grid = document.getElementById('diasGrid');
+    grid.innerHTML = dias.map(d => {
+      const checks = slots.map(s => `
+        <div class="flex items-center space-x-2">
+          <input type="checkbox" id="${d.abbr}-${s}" class="horario-checkbox" data-dia="${d.key}" data-horario="${s}">
+          <label for="${d.abbr}-${s}" class="text-sm">${s}</label>
+        </div>
+      `).join('');
+      return `
+        <div class="bg-gray-700 rounded-lg p-4">
+          <h3 class="font-semibold text-lg mb-4 text-gold">${d.label}</h3>
+          <!-- uma coluna para não parecer duplicado -->
+          <div class="space-y-2">${checks}</div>
+        </div>
+      `;
+    }).join('');
+    gridRendered = true;
+  }
+
+  function marcarCheckboxes() {
+    if (!database.horarios) return;
+    
+    Object.keys(database.horarios).forEach(dia => {
+      const marcados = new Set(database.horarios[dia] || []);
+      document.querySelectorAll(`[data-dia="${dia}"]`).forEach(cb => {
+        cb.checked = marcados.has(cb.dataset.horario);
+      });
+    });
+  }
+
+  // Selecionar/Desmarcar todos
+  document.getElementById('selectAllBtn').addEventListener('click', () => {
+    document.querySelectorAll('.horario-checkbox').forEach(cb => cb.checked = true);
+  });
+  document.getElementById('deselectAllBtn').addEventListener('click', () => {
+    document.querySelectorAll('.horario-checkbox').forEach(cb => cb.checked = false);
+  });
+
+  // Salvar horários -> PATCH /horarios
+  document.getElementById('saveHorariosBtn').addEventListener('click', async () => {
+    const novo = { segunda: [], terca: [], quarta: [], quinta: [], sexta: [], sabado: [], domingo: [] };
+    Object.keys(novo).forEach(dia => {
+      document.querySelectorAll(`[data-dia="${dia}"]:checked`).forEach(cb => {
+        novo[dia].push(cb.dataset.horario);
+      });
+    });
+
+    const btn = document.getElementById('saveHorariosBtn');
+    const saveMsg = document.getElementById('saveMsg');
+    btn.disabled = true;
+
+    try {
+      const atualizado = await apiPatch('/horarios', novo);
+      database.horarios = atualizado; // mantém em memória
+      saveMsg.textContent = 'Horários salvos com sucesso!';
+      saveMsg.className = 'mt-4 p-3 rounded-lg bg-green-900/50 border border-green-500 text-green-200';
+    } catch (err) {
+      console.error(err);
+      saveMsg.textContent = 'Falha ao salvar horários. Verifique o servidor.';
+      saveMsg.className = 'mt-4 p-3 rounded-lg bg-red-900/50 border border-red-500 text-red-200';
+    } finally {
+      saveMsg.classList.remove('hidden');
+      btn.disabled = false;
+      setTimeout(() => saveMsg.classList.add('hidden'), 4000);
+    }
+  });
+
+  // Alterar senha -> PATCH /admin/1
+  document.getElementById('senhaForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const senhaAtual = document.getElementById('senhaAtual').value;
+    const novaSenha = document.getElementById('novaSenha').value;
+    const confirmar = document.getElementById('confirmarSenha').value;
+    const msg = document.getElementById('senhaMessage');
+
+    function show(type, text) {
+      msg.textContent = text;
+      msg.className = 'mt-4 p-3 rounded-lg ' + (type === 'error'
+        ? 'bg-red-900/50 border border-red-500 text-red-200'
+        : 'bg-green-900/50 border border-green-500 text-green-200');
+      msg.classList.remove('hidden');
+      setTimeout(() => msg.classList.add('hidden'), 5000);
+    }
+
+    if (!sessionId) {
+      return show('error', 'Sessão expirada. Faça login novamente.');
+    }
+
+    if (novaSenha !== confirmar) return show('error', 'As senhas não coincidem!');
+    if (novaSenha.length < 6) return show('error', 'A nova senha deve ter pelo menos 6 caracteres!');
+
+    try {
+      // Primeiro verifica se a senha atual está correta fazendo login
+      const testLogin = await fetch(`${API}/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: database.admin.username, password: senhaAtual })
+      });
+      
+      if (!testLogin.ok) {
+        return show('error', 'Senha atual incorreta!');
+      }
+
+      const updated = await apiPatch('/admin/1', { password: novaSenha });
+      database.admin = { ...database.admin, ...updated };
+      (document.getElementById('senhaForm')).reset();
+      show('success', 'Senha alterada com sucesso!');
+    } catch (err) {
+      console.error(err);
+      show('error', 'Falha ao atualizar senha. Verifique o servidor.');
+    }
+  });
+
+  // Mostrar/ocultar senha (3 campos + login)
+  document.addEventListener('click', (e) => {
+    const btn = e.target.closest('.toggle-password');
+    if (!btn) return;
+    const id = btn.dataset.target;
+    const input = document.getElementById(id);
+    const tipo = input.getAttribute('type') === 'password' ? 'text' : 'password';
+    input.setAttribute('type', tipo);
+  });
+</script>
+
+</body>
+
+</html>
