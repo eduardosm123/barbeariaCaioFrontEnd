@@ -137,7 +137,7 @@
                     <!-- Lista de Agendamentos -->
                     <div id="agendamentosLista" class="space-y-4">
                         <div class="text-center py-8 text-gray-400">
-                            Carregando agendamentos...
+                            Loading appointments...
                         </div>
                     </div>
 
@@ -755,22 +755,18 @@
         </div>
         
         <div class="grid grid-cols-2 gap-4 mb-4 text-sm">
-          <div>
-            <span class="text-gray-400">Serviço:</span>
+            <div>
+            <span class="text-gray-400">Service:</span>
             <p class="text-white font-medium">${agendamento.servico}</p>
-          </div>
-          <div>
-            <span class="text-gray-400">Data:</span>
+            </div>
+            <div>
+            <span class="text-gray-400">Date:</span>
             <p class="text-white font-medium">${formatarData(agendamento.data)}</p>
-          </div>
-          <div>
-            <span class="text-gray-400">Horário:</span>
+            </div>
+            <div>
+            <span class="text-gray-400">Time:</span>
             <p class="text-white font-medium">${agendamento.horario}</p>
-          </div>
-          <div>
-            <span class="text-gray-400">Criado em:</span>
-            <p class="text-white font-medium">${new Date(agendamento.createdAt).toLocaleDateString('pt-BR')}</p>
-          </div>
+            </div>
         </div>
 
         <div class="flex flex-wrap gap-2">
