@@ -126,7 +126,7 @@
         <div class="bg-white dark:bg-gray-700 p-8 rounded-xl shadow-lg hover:shadow-xl transition-shadow">
           <div class="w-20 h-20 bg-gold/10 rounded-full flex items-center justify-center mb-6">
             <svg class="w-10 h-10 text-gold" fill="currentColor" viewBox="0 0 20 20">
-              <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
             </svg>
           </div>
           <h3 class="text-xl font-semibold mb-4">Skincare</h3>
@@ -177,8 +177,9 @@
             </div>
           </div>
         </div>
-        <div class="bg-gray-200 dark:bg-gray-700 h-96 rounded-xl flex items-center justify-center">
-          <span class="text-gray-500 dark:text-gray-400">Imagem da Barbearia</span>
+        <div class="relative h-96 rounded-xl overflow-hidden shadow-lg">
+          <img src="/fotos/loja.jpeg" alt="Interior da Barbearia VIP" class="w-full h-full object-cover">
+          <div class="absolute inset-0 bg-gradient-to-r from-black/20 to-transparent"></div>
         </div>
       </div>
     </div>
