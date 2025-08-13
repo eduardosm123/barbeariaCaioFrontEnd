@@ -142,6 +142,7 @@
 
     async function criarAgendamento(dadosAgendamento) {
       console.log('📝 Criando agendamento:', dadosAgendamento);
+      console.log('📝 Status enviado:', dadosAgendamento.status);
       
       try {
         const r = await fetch(`${API_BASE}/agendamentos`, {
@@ -152,13 +153,16 @@
           body: JSON.stringify(dadosAgendamento)
         });
         
+        console.log('📡 Resposta HTTP:', r.status);
+        
         if (!r.ok) {
           const error = await r.json();
           throw new Error(error.message || `HTTP ${r.status}`);
         }
         
         const agendamento = await r.json();
-        console.log('✅ Agendamento criado:', agendamento);
+        console.log('✅ Agendamento criado no backend:', agendamento);
+        console.log('✅ Status retornado:', agendamento.status);
         return agendamento;
       } catch (error) {
         console.error('❌ Erro ao criar agendamento:', error);
@@ -489,6 +493,8 @@
           horario,
           status: 'confirmado' // Agendamentos feitos pelo index são automaticamente confirmados
         };
+
+        console.log('🚀 Dados completos sendo enviados:', JSON.stringify(dadosAgendamento, null, 2));
 
         // Envia para o backend
         const agendamentoCriado = await criarAgendamento(dadosAgendamento);
