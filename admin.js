@@ -415,15 +415,44 @@
   // Abas
   const tabBtns = document.querySelectorAll('.tab-btn');
   const tabContents = document.querySelectorAll('.tab-content');
+  const mobileTabSelect = document.getElementById('mobileTabSelect');
+  
+  // Função para mostrar tab
+  function showTab(tabName) {
+    tabBtns.forEach(b => { 
+      b.classList.remove('active', 'border-gold', 'text-white'); 
+      b.classList.add('text-gray-400', 'border-transparent'); 
+    });
+    
+    // Ativar o botão da tab correspondente
+    const activeBtn = document.querySelector(`[data-tab="${tabName}"]`);
+    if (activeBtn) {
+      activeBtn.classList.add('active', 'border-gold', 'text-white'); 
+      activeBtn.classList.remove('text-gray-400', 'border-transparent');
+    }
+    
+    tabContents.forEach(c => c.classList.add('hidden'));
+    document.getElementById(`${tabName}Tab`).classList.remove('hidden');
+  }
+  
+  // Event listeners para desktop tabs
   tabBtns.forEach(btn => {
     btn.addEventListener('click', () => {
       const tab = btn.dataset.tab;
-      tabBtns.forEach(b => { b.classList.remove('active', 'border-gold', 'text-white'); b.classList.add('text-gray-400', 'border-transparent'); });
-      btn.classList.add('active', 'border-gold', 'text-white'); btn.classList.remove('text-gray-400', 'border-transparent');
-      tabContents.forEach(c => c.classList.add('hidden'));
-      document.getElementById(`${tab}Tab`).classList.remove('hidden');
+      showTab(tab);
+      // Sincronizar o select mobile
+      if (mobileTabSelect) {
+        mobileTabSelect.value = tab;
+      }
     });
   });
+  
+  // Event listener para mobile select
+  if (mobileTabSelect) {
+    mobileTabSelect.addEventListener('change', (e) => {
+      showTab(e.target.value);
+    });
+  }
 
   // ---- Horários (UI dinâmica)
   const dias = [
@@ -1531,6 +1560,13 @@
     });
   });
   
+  // Também aplicar para mudanças no select mobile
+  if (mobileTabSelect) {
+    mobileTabSelect.addEventListener('change', () => {
+      setTimeout(toggleBackToTopButton, 100);
+    });
+  }
+  
   backToTopBtn?.addEventListener('click', () => {
     window.scrollTo({
       top: 0,
@@ -1539,3 +1575,11 @@
   });
   
   toggleBackToTopButton();
+  
+  // Inicializar o select mobile com a tab ativa padrão
+  if (mobileTabSelect) {
+    const activeTab = document.querySelector('.tab-btn.active');
+    if (activeTab) {
+      mobileTabSelect.value = activeTab.dataset.tab;
+    }
+  }
