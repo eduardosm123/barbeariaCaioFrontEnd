@@ -143,21 +143,32 @@
 
                     <!-- Paginação -->
                     <div id="paginationContainer" class="mt-6 hidden">
-                        <div class="flex items-center justify-between">
+                        <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
                             <div class="text-sm text-gray-400">
                                 Showing <span id="paginationInfo">0-0 of 0</span> appointments
+                                <span id="pageInfo" class="ml-2 text-gold font-medium"></span>
                             </div>
-                            <div class="flex items-center space-x-2">
+                            <div class="flex items-center space-x-1">
+                                <button id="firstPageBtn" 
+                                    class="px-2 py-1 bg-gray-600 hover:bg-gray-500 text-white rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                                    disabled>
+                                    ⇤ First
+                                </button>
                                 <button id="prevPageBtn" 
                                     class="px-3 py-1 bg-gray-600 hover:bg-gray-500 text-white rounded disabled:opacity-50 disabled:cursor-not-allowed"
                                     disabled>
                                     ← Previous
                                 </button>
-                                <span id="pageNumbers" class="flex space-x-1"></span>
+                                <span id="pageNumbers" class="flex items-center space-x-1"></span>
                                 <button id="nextPageBtn" 
                                     class="px-3 py-1 bg-gray-600 hover:bg-gray-500 text-white rounded disabled:opacity-50 disabled:cursor-not-allowed"
                                     disabled>
                                     Next →
+                                </button>
+                                <button id="lastPageBtn" 
+                                    class="px-2 py-1 bg-gray-600 hover:bg-gray-500 text-white rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                                    disabled>
+                                    Last ⇥
                                 </button>
                             </div>
                         </div>
@@ -1058,8 +1069,11 @@
   function atualizarPaginacao(pagination) {
     const container = document.getElementById('paginationContainer');
     const info = document.getElementById('paginationInfo');
+    const pageInfo = document.getElementById('pageInfo');
     const prevBtn = document.getElementById('prevPageBtn');
     const nextBtn = document.getElementById('nextPageBtn');
+    const firstBtn = document.getElementById('firstPageBtn');
+    const lastBtn = document.getElementById('lastPageBtn');
     const pageNumbers = document.getElementById('pageNumbers');
 
     if (pagination.totalItems === 0) {
@@ -1073,34 +1087,87 @@
     const start = ((pagination.currentPage - 1) * pagination.itemsPerPage) + 1;
     const end = Math.min(start + pagination.itemsPerPage - 1, pagination.totalItems);
     info.textContent = `${start}-${end} of ${pagination.totalItems}`;
+    
+    // Mostrar informação da página atual
+    pageInfo.textContent = `(Page ${pagination.currentPage} of ${pagination.totalPages})`;
 
-    // Atualizar botões prev/next
+    // Atualizar botões de navegação
+    const isFirstPage = pagination.currentPage === 1;
+    const isLastPage = pagination.currentPage === pagination.totalPages;
+    
     prevBtn.disabled = !pagination.hasPrevPage;
     nextBtn.disabled = !pagination.hasNextPage;
+    firstBtn.disabled = isFirstPage;
+    lastBtn.disabled = isLastPage;
 
-    // Gerar números das páginas
+    // Gerar números das páginas com lógica melhorada
     pageNumbers.innerHTML = '';
     const maxVisiblePages = 5;
-    let startPage = Math.max(1, pagination.currentPage - Math.floor(maxVisiblePages / 2));
-    let endPage = Math.min(pagination.totalPages, startPage + maxVisiblePages - 1);
-
-    // Ajustar se não temos páginas suficientes no final
-    if (endPage - startPage + 1 < maxVisiblePages) {
-      startPage = Math.max(1, endPage - maxVisiblePages + 1);
+    
+    if (pagination.totalPages <= maxVisiblePages) {
+      // Se tem 5 páginas ou menos, mostra todas
+      for (let i = 1; i <= pagination.totalPages; i++) {
+        criarBotaoPagina(i, pagination.currentPage === i);
+      }
+    } else {
+      // Lógica para mais de 5 páginas
+      let startPage, endPage;
+      
+      if (pagination.currentPage <= 3) {
+        // Início: mostra [1] [2] [3] [4] [5] ... [last]
+        startPage = 1;
+        endPage = 5;
+      } else if (pagination.currentPage >= pagination.totalPages - 2) {
+        // Final: mostra [1] ... [n-4] [n-3] [n-2] [n-1] [n]
+        startPage = pagination.totalPages - 4;
+        endPage = pagination.totalPages;
+      } else {
+        // Meio: mostra [1] ... [current-1] [current] [current+1] ... [last]
+        startPage = pagination.currentPage - 1;
+        endPage = pagination.currentPage + 1;
+      }
+      
+      // Primeira página (se não estiver no início)
+      if (startPage > 1) {
+        criarBotaoPagina(1, false);
+        if (startPage > 2) {
+          criarReticencias();
+        }
+      }
+      
+      // Páginas do meio
+      for (let i = startPage; i <= endPage; i++) {
+        criarBotaoPagina(i, pagination.currentPage === i);
+      }
+      
+      // Última página (se não estiver no final)
+      if (endPage < pagination.totalPages) {
+        if (endPage < pagination.totalPages - 1) {
+          criarReticencias();
+        }
+        criarBotaoPagina(pagination.totalPages, false);
+      }
     }
-
-    for (let i = startPage; i <= endPage; i++) {
+    
+    function criarBotaoPagina(pageNum, isActive) {
       const button = document.createElement('button');
-      button.textContent = i;
-      button.className = `px-3 py-1 rounded ${i === pagination.currentPage 
+      button.textContent = pageNum;
+      button.className = `px-3 py-1 rounded transition-colors ${isActive 
         ? 'bg-gold text-black font-semibold' 
         : 'bg-gray-600 hover:bg-gray-500 text-white'}`;
       
-      if (i !== pagination.currentPage) {
-        button.addEventListener('click', () => carregarEMostrarAgendamentos(i));
+      if (!isActive) {
+        button.addEventListener('click', () => carregarEMostrarAgendamentos(pageNum));
       }
       
       pageNumbers.appendChild(button);
+    }
+    
+    function criarReticencias() {
+      const dots = document.createElement('span');
+      dots.textContent = '...';
+      dots.className = 'px-2 py-1 text-gray-400';
+      pageNumbers.appendChild(dots);
     }
   }
 
@@ -1351,6 +1418,18 @@
   document.getElementById('nextPageBtn')?.addEventListener('click', () => {
     if (currentPage < totalPages) {
       carregarEMostrarAgendamentos(currentPage + 1);
+    }
+  });
+
+  document.getElementById('firstPageBtn')?.addEventListener('click', () => {
+    if (currentPage !== 1) {
+      carregarEMostrarAgendamentos(1);
+    }
+  });
+
+  document.getElementById('lastPageBtn')?.addEventListener('click', () => {
+    if (currentPage !== totalPages) {
+      carregarEMostrarAgendamentos(totalPages);
     }
   });
 </script>
