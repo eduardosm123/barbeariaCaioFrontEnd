@@ -285,9 +285,53 @@
 
                 <!-- Serviço -->
                 <div>
-                    <label for="editServico" class="block text-sm font-medium text-gray-300 mb-2">Service</label>
-                    <input type="text" id="editServico" required
-                        class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-gold focus:border-transparent text-white">
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Service</label>
+                    <div id="editServicosGroup" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <!-- Corte -->
+                        <label class="cursor-pointer">
+                            <input type="checkbox" name="editServicos" value="Corte Masculino" data-minutos="20" class="peer sr-only">
+                            <div class="w-full rounded-lg border border-gray-600 px-3 py-2 text-sm flex items-center justify-between
+                                hover:border-gold transition-colors
+                                peer-checked:border-gold peer-checked:bg-gold/10">
+                                <span class="font-medium">Corte Masculino</span>
+                                <span class="text-gold font-semibold">20 min</span>
+                            </div>
+                        </label>
+
+                        <!-- Barba & Bigode -->
+                        <label class="cursor-pointer">
+                            <input type="checkbox" name="editServicos" value="Barba & Bigode" data-minutos="10" class="peer sr-only">
+                            <div class="w-full rounded-lg border border-gray-600 px-3 py-2 text-sm flex items-center justify-between
+                                hover:border-gold transition-colors
+                                peer-checked:border-gold peer-checked:bg-gold/10">
+                                <span class="font-medium">Barba &amp; Bigode</span>
+                                <span class="text-gold font-semibold">10 min</span>
+                            </div>
+                        </label>
+
+                        <!-- Skincare -->
+                        <label class="cursor-pointer">
+                            <input type="checkbox" name="editServicos" value="Skincare" data-minutos="15" class="peer sr-only">
+                            <div class="w-full rounded-lg border border-gray-600 px-3 py-2 text-sm flex items-center justify-between
+                                hover:border-gold transition-colors
+                                peer-checked:border-gold peer-checked:bg-gold/10">
+                                <span class="font-medium">Skincare</span>
+                                <span class="text-gold font-semibold">15 min</span>
+                            </div>
+                        </label>
+
+                        <!-- Queratina -->
+                        <label class="cursor-pointer">
+                            <input type="checkbox" name="editServicos" value="Queratina" data-minutos="60" class="peer sr-only">
+                            <div class="w-full rounded-lg border border-gray-600 px-3 py-2 text-sm flex items-center justify-between
+                                hover:border-gold transition-colors
+                                peer-checked:border-gold peer-checked:bg-gold/10">
+                                <span class="font-medium">Queratina</span>
+                                <span class="text-gold font-semibold">1h</span>
+                            </div>
+                        </label>
+                    </div>
+                    <p class="text-xs text-gray-400 mt-1">Selecione um ou mais serviços</p>
                 </div>
 
                 <!-- Data -->
@@ -1012,10 +1056,25 @@
     document.getElementById('editAgendamentoId').value = agendamento.id;
     document.getElementById('editNome').value = agendamento.nome || '';
     document.getElementById('editTelefone').value = agendamento.telefone || '';
-    document.getElementById('editServico').value = agendamento.servico || '';
     document.getElementById('editData').value = agendamento.data || '';
     document.getElementById('editHorario').value = agendamento.horario || '';
     document.getElementById('editStatus').value = agendamento.status || 'pendente';
+    
+    // Limpar todas as seleções de serviços primeiro
+    document.querySelectorAll('input[name="editServicos"]').forEach(checkbox => {
+      checkbox.checked = false;
+    });
+    
+    // Marcar os serviços selecionados (podem ser múltiplos separados por vírgula)
+    if (agendamento.servico) {
+      const servicosSelecionados = agendamento.servico.split(', ').map(s => s.trim());
+      servicosSelecionados.forEach(servico => {
+        const checkbox = document.querySelector(`input[name="editServicos"][value="${servico}"]`);
+        if (checkbox) {
+          checkbox.checked = true;
+        }
+      });
+    }
     
     console.log('Removendo classe hidden...');
     modal.classList.remove('hidden');
@@ -1027,6 +1086,11 @@
     document.getElementById('editModal').classList.add('hidden');
     document.body.style.overflow = 'auto';
     document.getElementById('editForm').reset();
+    
+    // Limpar também os checkboxes de serviços
+    document.querySelectorAll('input[name="editServicos"]').forEach(checkbox => {
+      checkbox.checked = false;
+    });
   }
 
   // Event listeners do modal
@@ -1068,10 +1132,21 @@
     e.preventDefault();
     
     const agendamentoId = document.getElementById('editAgendamentoId').value;
+    
+    // Coletar serviços selecionados (múltipla escolha)
+    const servicosEls = document.querySelectorAll('input[name="editServicos"]:checked');
+    const servicosSelecionados = Array.from(servicosEls).map(el => el.value);
+    
+    // Validar se pelo menos um serviço foi selecionado
+    if (servicosSelecionados.length === 0) {
+      mostrarMensagem('Erro: Selecione pelo menos um serviço', 'error');
+      return;
+    }
+    
     const dadosAtualizados = {
       nome: document.getElementById('editNome').value.trim(),
       telefone: document.getElementById('editTelefone').value.trim(),
-      servico: document.getElementById('editServico').value.trim(),
+      servico: servicosSelecionados.join(', '), // Juntar com vírgula como no index.html
       data: document.getElementById('editData').value,
       horario: document.getElementById('editHorario').value,
       status: document.getElementById('editStatus').value
