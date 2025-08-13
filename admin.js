@@ -1206,6 +1206,32 @@
       e.target.setCustomValidity(ok || e.target.value === '' ? '' : 'Enter a valid phone: (11) 91234-5678');
   });
 
+  // Função para calcular tempo total dos serviços (igual ao index.html)
+  function minutosParaTexto(minutos) {
+    if (minutos < 60) return `${minutos} min`;
+    const horas = Math.floor(minutos / 60);
+    const minutosRestantes = minutos % 60;
+    if (minutosRestantes === 0) return `${horas}h`;
+    return `${horas}h ${minutosRestantes}min`;
+  }
+
+  function atualizarTempoTotal() {
+    const checkboxes = document.querySelectorAll('input[name="novoServicos"]:checked');
+    let total = 0;
+    checkboxes.forEach(cb => {
+      const minutos = parseInt(cb.getAttribute('data-minutos'));
+      if (!isNaN(minutos)) total += minutos;
+    });
+
+    const alvo = document.getElementById('novoTempoTotal');
+    if (alvo) alvo.textContent = minutosParaTexto(total);
+  }
+
+  // Event listeners para atualizar tempo total quando serviços mudam
+  document.querySelectorAll('input[name="novoServicos"]').forEach(checkbox => {
+    checkbox.addEventListener('change', atualizarTempoTotal);
+  });
+
   // Sistema de horários disponíveis (baseado no index.html e adaptado para admin)
   const diasSemanaMap = {
       'Segunda-feira': 'segunda',
