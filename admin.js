@@ -879,15 +879,17 @@
   document.getElementById('agendamentosLista')?.addEventListener('click', handleAgendamentosClick);
 
   // Funções do Modal de Edição
-  function abrirModalEdicao(agendamento) {
+  async function abrirModalEdicao(agendamento) {
     const modal = document.getElementById('editModal');
     if (!modal) return;
+    
+    // Salvar o ID do agendamento no modal para uso posterior
+    modal.dataset.agendamentoId = agendamento.id;
     
     document.getElementById('editAgendamentoId').value = agendamento.id;
     document.getElementById('editNome').value = agendamento.nome || '';
     document.getElementById('editTelefone').value = agendamento.telefone || '';
     document.getElementById('editData').value = agendamento.data || '';
-    document.getElementById('editHorario').value = agendamento.horario || '';
     document.getElementById('editStatus').value = agendamento.status || 'pendente';
     
     // Limpar todas as seleções de serviços primeiro
@@ -902,6 +904,15 @@
         const checkbox = document.querySelector(`input[name="editServicos"][value="${servico}"]`);
         if (checkbox) checkbox.checked = true;
       });
+    }
+    
+    // Carregar horários disponíveis para a data do agendamento
+    if (agendamento.data) {
+        await carregarHorariosParaEdicao(agendamento.data, agendamento.id);
+        // Selecionar o horário atual após carregar as opções
+        setTimeout(() => {
+            document.getElementById('editHorario').value = agendamento.horario || '';
+        }, 100);
     }
     
     modal.classList.remove('hidden');
@@ -926,6 +937,18 @@
   // Formatação de telefone no modal
   document.getElementById('editTelefone')?.addEventListener('input', (e) => {
     e.target.value = formatBRPhone(e.target.value);
+  });
+  
+  // Event listener para mudança de data no modal de edição
+  document.getElementById('editData')?.addEventListener('change', async function () {
+      console.log('📅 Data selecionada no modal de edição:', this.value);
+      // Pegar o ID do agendamento atual
+      const modal = document.getElementById('editModal');
+      const agendamentoId = modal.dataset.agendamentoId;
+      
+      if (this.value && agendamentoId) {
+          await carregarHorariosParaEdicao(this.value, agendamentoId);
+      }
   });
   
   // Fechar modal clicando fora
@@ -1256,6 +1279,93 @@
       } catch (error) {
           console.warn('⚠️ Error loading scheduled appointments:', error);
           return [];
+      }
+  }
+
+  // Função específica para modal de edição - ignora o agendamento atual
+  async function carregarHorariosAgendadosParaDataExcluindoAtual(data, idAtual) {
+      try {
+          const todosAgendamentos = await apiGet('/agendamentos');
+          // Filtra agendamentos confirmados para a data, mas exclui o agendamento atual
+          const agendamentosConfirmados = todosAgendamentos.filter(ag => 
+              ag.data === data && 
+              ag.status === 'confirmado' && 
+              String(ag.id) !== String(idAtual)
+          );
+          console.log(`📅 Agendamentos confirmados para ${data} (excluindo ID ${idAtual}):`, agendamentosConfirmados);
+          return agendamentosConfirmados;
+      } catch (error) {
+          console.warn('⚠️ Error loading scheduled appointments:', error);
+          return [];
+      }
+  }
+
+  // Função para carregar horários disponíveis no modal de edição
+  async function carregarHorariosParaEdicao(dataSelecionada, agendamentoAtualId) {
+      const horarioSelect = document.getElementById('editHorario');
+      
+      if (!dataSelecionada) {
+          horarioSelect.innerHTML = '<option value="">Select a date first</option>';
+          return;
+      }
+
+      // Descobrir o dia da semana
+      const data = new Date(`${dataSelecionada}T00:00:00`);
+      const nomeDia = data.toLocaleDateString('pt-BR', { weekday: 'long' });
+      const nomeDiaFormatado = nomeDia.charAt(0).toUpperCase() + nomeDia.slice(1);
+      const diaChave = diasSemanaMap[nomeDiaFormatado];
+      
+      console.log('📅 Carregando horários para edição:', { dataSelecionada, diaChave, agendamentoAtualId });
+
+      const horariosDisponiveis = database.horarios;
+      const agendamentosConfirmados = await carregarHorariosAgendadosParaDataExcluindoAtual(dataSelecionada, agendamentoAtualId);
+      const horariosOcupados = new Set(agendamentosConfirmados.map(ag => ag.horario));
+
+      // Verificar se é hoje para filtrar horários que já passaram
+      const hoje = new Date();
+      const dataAtual = hoje.toISOString().split('T')[0];
+      const horaAtual = hoje.toTimeString().split(' ')[0].substring(0, 5);
+      const isHoje = dataSelecionada === dataAtual;
+
+      horarioSelect.innerHTML = '<option value="">Select a time</option>';
+
+      if (diaChave && Array.isArray(horariosDisponiveis[diaChave])) {
+          const horariosDoDia = horariosDisponiveis[diaChave];
+          if (horariosDoDia.length === 0) {
+              horarioSelect.innerHTML = '<option value="">Closed on this day</option>';
+          } else {
+              let horariosValidos = 0;
+              
+              horariosDoDia.forEach(h => {
+                  // Se é hoje, verificar se o horário já passou
+                  if (isHoje && h <= horaAtual) {
+                      console.log('⏰ Horário', h, 'já passou (atual:', horaAtual, ')');
+                      return;
+                  }
+
+                  const opt = document.createElement('option');
+                  opt.value = h;
+                  if (horariosOcupados.has(h)) {
+                      opt.textContent = `${h} (Occupied)`;
+                      opt.disabled = true;
+                      opt.style.color = '#999';
+                  } else {
+                      opt.textContent = h;
+                  }
+                  horarioSelect.appendChild(opt);
+                  horariosValidos++;
+              });
+
+              if (horariosValidos === 0) {
+                  if (isHoje) {
+                      horarioSelect.innerHTML = '<option value="">All times for today have passed</option>';
+                  } else {
+                      horarioSelect.innerHTML = '<option value="">All times are occupied</option>';
+                  }
+              }
+          }
+      } else {
+          horarioSelect.innerHTML = '<option value="">No schedules available</option>';
       }
   }
 
