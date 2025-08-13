@@ -486,7 +486,8 @@
           telefone,
           servico: servicosSelecionados.join(', '),
           data,
-          horario
+          horario,
+          status: 'confirmado' // Agendamentos feitos pelo index são automaticamente confirmados
         };
 
         // Envia para o backend
@@ -499,7 +500,7 @@
           servicos: servicosSelecionados,
           totalMinutos,
           id: agendamentoCriado.id,
-          status: agendamentoCriado.status || 'pendente'
+          status: agendamentoCriado.status || 'confirmado' // Usa o status do backend ou confirmado como padrão
         };
         
         let database = JSON.parse(localStorage.getItem('barbeariaAdmin')) || {};
