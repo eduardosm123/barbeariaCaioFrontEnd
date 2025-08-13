@@ -1688,8 +1688,14 @@
 
   async function carregarHorariosAgendadosParaData(data) {
       try {
-          const todosAgendamentos = await apiGet(`/agendamentos?data=${data}`);
-          return todosAgendamentos.filter(ag => ag.status === 'confirmado');
+          // Carrega TODOS os agendamentos e filtra localmente
+          const todosAgendamentos = await apiGet('/agendamentos');
+          // Filtra apenas os agendamentos confirmados para a data específica
+          const agendamentosConfirmados = todosAgendamentos.filter(ag => 
+              ag.data === data && ag.status === 'confirmado'
+          );
+          console.log(`📅 Agendamentos confirmados para ${data}:`, agendamentosConfirmados);
+          return agendamentosConfirmados;
       } catch (error) {
           console.warn('⚠️ Error loading scheduled appointments:', error);
           return [];
@@ -1698,6 +1704,7 @@
 
   // Event listener para mudança de data no modal de novo agendamento
   document.getElementById('novoData')?.addEventListener('change', async function () {
+      console.log('📅 Data selecionada no modal admin:', this.value);
       const dataSelecionada = this.value;
       const horarioSelect = document.getElementById('novoHorario');
 
@@ -1710,16 +1717,26 @@
       const data = new Date(`${dataSelecionada}T00:00:00`);
       const nomeDia = data.toLocaleDateString('pt-BR', { weekday: 'long' });
       const nomeDiaFormatado = nomeDia.charAt(0).toUpperCase() + nomeDia.slice(1);
+      console.log('📆 Dia da semana detectado:', nomeDiaFormatado);
+      
       const diaChave = diasSemanaMap[nomeDiaFormatado];
+      console.log('🔑 Chave do dia:', diaChave);
 
       const horariosDisponiveis = database.horarios; // Usa os horários já carregados
+      console.log('⏰ Horários disponíveis para', diaChave, ':', horariosDisponiveis[diaChave]);
+      
       const agendamentosConfirmados = await carregarHorariosAgendadosParaData(dataSelecionada);
       const horariosOcupados = new Set(agendamentosConfirmados.map(ag => ag.horario));
+      console.log('🚫 Horários ocupados (confirmados):', Array.from(horariosOcupados));
 
+      // Verificar se é hoje para filtrar horários que já passaram
       const hoje = new Date();
       const dataAtual = hoje.toISOString().split('T')[0];
       const horaAtual = hoje.toTimeString().split(' ')[0].substring(0, 5);
       const isHoje = dataSelecionada === dataAtual;
+      
+      console.log('📅 Data atual:', dataAtual, '- Hora atual:', horaAtual);
+      console.log('🗓️ É hoje?', isHoje);
 
       horarioSelect.innerHTML = '<option value="">Select a time</option>';
 
@@ -1729,8 +1746,13 @@
               horarioSelect.innerHTML = '<option value="">Closed on this day</option>';
           } else {
               let horariosValidos = 0;
+              
               horariosDoDia.forEach(h => {
-                  if (isHoje && h <= horaAtual) return; // Pula horário passado
+                  // Se é hoje, verificar se o horário já passou
+                  if (isHoje && h <= horaAtual) {
+                      console.log('⏰ Horário', h, 'já passou (atual:', horaAtual, ')');
+                      return; // Pula este horário - não adiciona ao select
+                  }
 
                   const opt = document.createElement('option');
                   opt.value = h;
@@ -1745,8 +1767,13 @@
                   horariosValidos++;
               });
 
+              // Se nenhum horário válido restou
               if (horariosValidos === 0) {
-                  horarioSelect.innerHTML = `<option value="">${isHoje ? 'All times have passed' : 'All times are occupied'}</option>`;
+                  if (isHoje) {
+                      horarioSelect.innerHTML = '<option value="">All times for today have passed</option>';
+                  } else {
+                      horarioSelect.innerHTML = '<option value="">All times are occupied</option>';
+                  }
               }
           }
       } else {
