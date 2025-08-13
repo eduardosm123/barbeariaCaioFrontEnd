@@ -116,28 +116,29 @@
 
                     <!-- Filtros -->
                     <div class="grid md:grid-cols-3 gap-4 mb-6 p-4 bg-gray-700 rounded-lg">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-300 mb-2">Filter by Date</label>
-                            <input type="date" id="filtroData" 
-                                class="w-full px-3 py-2 bg-gray-600 border border-gray-500 rounded-lg focus:ring-2 focus:ring-gold focus:border-transparent text-white">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-300 mb-2">Filter by Status</label>
-                            <select id="filtroStatus" 
-                                class="w-full px-3 py-2 bg-gray-600 border border-gray-500 rounded-lg focus:ring-2 focus:ring-gold focus:border-transparent text-white">
-                                <option value="">All statuses</option>
-                                <option value="pendente">Pending</option>
-                                <option value="confirmado">Confirmed</option>
-                                <option value="cancelado">Canceled</option>
-                                <option value="finalizado">Finished</option>
-                            </select>
-                        </div>
-                        <div class="flex items-end">
-                            <button id="limparFiltros"
-                                class="w-full bg-gray-600 hover:bg-gray-500 text-white px-4 py-2 rounded-lg transition-colors text-sm">
-                                Clear Filters
-                            </button>
-                        </div>
+                      <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-2">Filter by Date</label>
+                        <input type="date" id="filtroData" 
+                          class="w-full px-3 py-2 bg-gray-600 border border-gray-500 rounded-lg focus:ring-2 focus:ring-gold focus:border-transparent text-white">
+                      </div>
+                      <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-2">Filter by Status</label>
+                        <select id="filtroStatus" 
+                          class="w-full px-3 py-2 bg-gray-600 border border-gray-500 rounded-lg focus:ring-2 focus:ring-gold focus:border-transparent text-white">
+                          <option value="">All statuses</option>
+                          <option value="pendente">Pending</option>
+                          <option value="confirmado">Confirmed</option>
+                          <option value="cancelado">Canceled</option>
+                          <option value="finalizado">Finished</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-2">Actions</label>
+                        <button id="limparFiltros"
+                          class="w-full bg-gray-600 hover:bg-gray-500 text-white px-4 py-2 rounded-lg transition-colors text-sm">
+                          Clear Filters
+                        </button>
+                      </div>
                     </div>
 
                     <!-- Lista de Agendamentos -->
