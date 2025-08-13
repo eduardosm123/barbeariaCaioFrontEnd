@@ -824,7 +824,7 @@
   function criarCardAgendamento(agendamento) {
     const statusInfo = formatarStatus(agendamento.status);
     return `
-      <div class="bg-gray-700 rounded-lg p-4 border border-gray-600" data-agendamento-id="${agendamento._id || agendamento.id}">
+      <div class="bg-gray-700 rounded-lg p-4 border border-gray-600" data-agendamento-id="${agendamento.id || agendamento.id}">
         <div class="flex justify-between items-start mb-3">
           <div>
             <h3 class="font-semibold text-lg text-white">${agendamento.nome}</h3>
@@ -852,12 +852,12 @@
 
         <div class="flex flex-wrap gap-2">
           <button class="editar-agendamento-btn bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm transition-colors"
-                  data-agendamento-id="${agendamento._id || agendamento.id}">
+                  data-agendamento-id="${agendamento.id || agendamento.id}">
             ✏️ Edit
           </button>
           
           <select class="status-select px-2 py-1 bg-gray-600 border border-gray-500 rounded text-white text-sm" 
-                  data-agendamento-id="${agendamento._id || agendamento.id}">
+                  data-agendamento-id="${agendamento.id || agendamento.id}">
             <option value="pendente" ${agendamento.status === 'pendente' ? 'selected' : ''}>Pending</option>
             <option value="confirmado" ${agendamento.status === 'confirmado' ? 'selected' : ''}>Confirmed</option>
             <option value="cancelado" ${agendamento.status === 'cancelado' ? 'selected' : ''}>Canceled</option>
@@ -865,12 +865,12 @@
           </select>
           
           <button class="salvar-status-btn bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-sm transition-colors"
-                  data-agendamento-id="${agendamento._id || agendamento.id}">
+                  data-agendamento-id="${agendamento.id || agendamento.id}">
             💾 Save Status
           </button>
           
           <button class="excluir-agendamento-btn bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm transition-colors"
-                  data-agendamento-id="${agendamento._id || agendamento.id}">
+                  data-agendamento-id="${agendamento.id || agendamento.id}">
             🗑️ Delete
           </button>
         </div>
@@ -916,7 +916,7 @@
     document.querySelectorAll('.editar-agendamento-btn').forEach(btn => {
       btn.addEventListener('click', (e) => {
         const agendamentoId = e.target.dataset.agendamentoId;
-        const agendamento = database.agendamentos.find(ag => (ag._id || ag.id) === agendamentoId);
+        const agendamento = database.agendamentos.find(ag => (ag.id || ag.id) === agendamentoId);
         
         if (agendamento) {
           abrirModalEdicao(agendamento);
@@ -976,7 +976,7 @@
 
   // Funções do Modal de Edição
   function abrirModalEdicao(agendamento) {
-    document.getElementById('editAgendamentoId').value = agendamento._id || agendamento.id;
+    document.getElementById('editAgendamentoId').value = agendamento.id || agendamento.id;
     document.getElementById('editNome').value = agendamento.nome;
     document.getElementById('editTelefone').value = agendamento.telefone;
     document.getElementById('editServico').value = agendamento.servico;
