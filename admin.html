@@ -446,6 +446,8 @@
   async function carregarAgendamentos() {
     try {
       const agendamentos = await apiGet('/agendamentos');
+      console.log('📋 Agendamentos carregados da API:', agendamentos);
+      console.log('📋 Primeiro agendamento (estrutura):', agendamentos[0]);
       database.agendamentos = agendamentos;
       return agendamentos;
     } catch (err) {
@@ -852,12 +854,12 @@
 
         <div class="flex flex-wrap gap-2">
           <button class="editar-agendamento-btn bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm transition-colors"
-                  data-agendamento-id="${agendamento.id || agendamento.id}">
+                  data-agendamento-id="${agendamento.id}">
             ✏️ Edit
           </button>
           
           <select class="status-select px-2 py-1 bg-gray-600 border border-gray-500 rounded text-white text-sm" 
-                  data-agendamento-id="${agendamento.id || agendamento.id}">
+                  data-agendamento-id="${agendamento.id}">
             <option value="pendente" ${agendamento.status === 'pendente' ? 'selected' : ''}>Pending</option>
             <option value="confirmado" ${agendamento.status === 'confirmado' ? 'selected' : ''}>Confirmed</option>
             <option value="cancelado" ${agendamento.status === 'cancelado' ? 'selected' : ''}>Canceled</option>
@@ -865,12 +867,12 @@
           </select>
           
           <button class="salvar-status-btn bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-sm transition-colors"
-                  data-agendamento-id="${agendamento.id || agendamento.id}">
+                  data-agendamento-id="${agendamento.id}">
             💾 Save Status
           </button>
           
           <button class="excluir-agendamento-btn bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm transition-colors"
-                  data-agendamento-id="${agendamento.id || agendamento.id}">
+                  data-agendamento-id="${agendamento.id}">
             🗑️ Delete
           </button>
         </div>
@@ -916,10 +918,16 @@
     document.querySelectorAll('.editar-agendamento-btn').forEach(btn => {
       btn.addEventListener('click', (e) => {
         const agendamentoId = e.target.dataset.agendamentoId;
-        const agendamento = database.agendamentos.find(ag => (ag.id || ag.id) === agendamentoId);
+        console.log('Clicou em editar, ID:', agendamentoId);
+        console.log('Agendamentos disponíveis:', database.agendamentos);
+        
+        const agendamento = database.agendamentos.find(ag => ag.id === agendamentoId);
+        console.log('Agendamento encontrado:', agendamento);
         
         if (agendamento) {
           abrirModalEdicao(agendamento);
+        } else {
+          console.error('Agendamento não encontrado com ID:', agendamentoId);
         }
       });
     });
