@@ -789,13 +789,24 @@
         carregarEMostrarAgendamentos();
       }
 
-      document.getElementById('loginBtn').disabled = false;
       bootDone = true;
     } catch (err) {
       console.error(err);
       const el = document.getElementById('apiError');
       el.textContent = 'Could not connect to the API (https://barbeariacaio.onrender.com). Check your connection and try again.';
       el.classList.remove('hidden');
+    } finally {
+      // SEMPRE habilita o botão de login, mesmo se houver erro na API
+      document.getElementById('loginBtn').disabled = false;
+      
+      // Backup adicional: força habilitação após 2 segundos como failsafe
+      setTimeout(() => {
+        const loginBtn = document.getElementById('loginBtn');
+        if (loginBtn && loginBtn.disabled) {
+          console.log('🔧 Forçando habilitação do botão de login...');
+          loginBtn.disabled = false;
+        }
+      }, 2000);
     }
   });
 
@@ -809,14 +820,22 @@
   // Login
   loginForm.addEventListener('submit', async (e) => {
     e.preventDefault();
-    if (!bootDone) return;
+    
+    // Remove a verificação de bootDone que pode estar causando problemas
+    // if (!bootDone) return;
 
     const username = document.getElementById('username').value.trim();
     const password = document.getElementById('password').value;
     
     const loginBtn = document.getElementById('loginBtn');
+    
+    // Força habilitar o botão caso esteja desabilitado por algum motivo
+    if (loginBtn.disabled && (username && password)) {
+      loginBtn.disabled = false;
+    }
+    
     loginBtn.disabled = true;
-    loginBtn.textContent = 'Entrando...';
+    loginBtn.textContent = 'Logging in...';
 
     try {
       // Tenta fazer login via API
@@ -858,7 +877,7 @@
       loginError.classList.remove('hidden');
     } finally {
       loginBtn.disabled = false;
-      loginBtn.textContent = 'Entrar';
+      loginBtn.textContent = 'Login';
     }
   });
 
@@ -888,6 +907,22 @@
       window.location.href = 'admin.html'; // Recarrega a página de admin para a tela de login
     }
   });
+
+  // Event listeners para habilitar o botão quando os campos forem preenchidos
+  function checkLoginFields() {
+    const username = document.getElementById('username').value.trim();
+    const password = document.getElementById('password').value;
+    const loginBtn = document.getElementById('loginBtn');
+    
+    // Habilita o botão se ambos os campos estão preenchidos
+    if (username && password) {
+      loginBtn.disabled = false;
+    }
+  }
+
+  // Monitora mudanças nos campos de login
+  document.getElementById('username')?.addEventListener('input', checkLoginFields);
+  document.getElementById('password')?.addEventListener('input', checkLoginFields);
 
   function showDashboard() {
     loginScreen.classList.add('hidden');
