@@ -1450,13 +1450,12 @@
   
   // ---- BOTÃO FLUTUANTE - VOLTAR AO TOPO ----
   const backToTopBtn = document.getElementById('backToTopBtn');
-  const horariosTab = document.getElementById('horariosTab');
   
   function toggleBackToTopButton() {
-    const isHorariosTabVisible = !horariosTab.classList.contains('hidden');
     const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
     
-    if (isHorariosTabVisible && scrollTop > 300) {
+    // Mostrar o botão em qualquer aba quando o usuário scroll mais de 300px
+    if (scrollTop > 300) {
       backToTopBtn.classList.remove('opacity-0', 'invisible');
       backToTopBtn.classList.add('opacity-100', 'visible');
     } else {
