@@ -211,6 +211,14 @@
 
                     <div id="saveMsg" class="mt-4 hidden"></div>
                 </div>
+                
+                <!-- Botão Flutuante - Voltar ao Topo (apenas na aba Horários) -->
+                <button id="backToTopBtn" 
+                    class="fixed bottom-6 right-6 bg-gold hover:bg-darkgold text-black p-3 rounded-full shadow-lg transition-all duration-300 opacity-0 invisible z-40">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"/>
+                    </svg>
+                </button>
             </div>
 
             <!-- Alterar Senha -->
@@ -1503,6 +1511,46 @@
       carregarEMostrarAgendamentos(totalPages);
     }
   });
+
+  // ---- BOTÃO FLUTUANTE - VOLTAR AO TOPO ----
+  const backToTopBtn = document.getElementById('backToTopBtn');
+  const horariosTab = document.getElementById('horariosTab');
+  
+  // Função para mostrar/ocultar o botão baseado no scroll
+  function toggleBackToTopButton() {
+    const isHorariosTabVisible = !horariosTab.classList.contains('hidden');
+    const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+    
+    if (isHorariosTabVisible && scrollTop > 300) {
+      backToTopBtn.classList.remove('opacity-0', 'invisible');
+      backToTopBtn.classList.add('opacity-100', 'visible');
+    } else {
+      backToTopBtn.classList.add('opacity-0', 'invisible');
+      backToTopBtn.classList.remove('opacity-100', 'visible');
+    }
+  }
+  
+  // Event listener para o scroll
+  window.addEventListener('scroll', toggleBackToTopButton);
+  
+  // Event listener para mudança de abas (mostrar/ocultar botão conforme aba ativa)
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      // Pequeno delay para aguardar a mudança de aba
+      setTimeout(toggleBackToTopButton, 100);
+    });
+  });
+  
+  // Event listener para o clique no botão
+  backToTopBtn?.addEventListener('click', () => {
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
+  });
+  
+  // Verificação inicial
+  toggleBackToTopButton();
 </script>
 
 </body>
