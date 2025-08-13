@@ -458,10 +458,15 @@
 
   async function atualizarAgendamento(id, dadosAtualizados) {
     try {
+      console.log('🔄 Atualizando agendamento:', { id, dadosAtualizados });
+      console.log('🔄 URL da requisição:', `${API}/agendamentos/${id}`);
+      
       const agendamentoAtualizado = await apiPatch(`/agendamentos/${id}`, dadosAtualizados);
+      console.log('✅ Agendamento atualizado com sucesso:', agendamentoAtualizado);
+      
       return agendamentoAtualizado;
     } catch (err) {
-      console.error('Erro ao atualizar agendamento:', err);
+      console.error('❌ Erro ao atualizar agendamento:', err);
       throw err;
     }
   }
@@ -823,13 +828,9 @@
     return statusMap[status] || { text: status, class: 'bg-gray-900/50 border-gray-500 text-gray-200' };
   }
 
-  function normalizarId(obj) {
-    return String(obj?.id ?? obj?._id ?? '');
-  }
-
   function criarCardAgendamento(agendamento) {
     const statusInfo = formatarStatus(agendamento.status);
-    const agId = normalizarId(agendamento);
+    const agId = agendamento.id; // Usar diretamente o ID da API
     return `
       <div class="bg-gray-700 rounded-lg p-4 border border-gray-600" data-agendamento-id="${agId}">
         <div class="flex justify-between items-start mb-3">
@@ -921,12 +922,17 @@
     // Editar
     const editBtn = e.target.closest('.editar-agendamento-btn');
     if (editBtn) {
-      const agendamentoId = String(editBtn.dataset.agendamentoId);
-      const agendamento = database.agendamentos.find(ag => normalizarId(ag) === agendamentoId);
+      const agendamentoId = editBtn.dataset.agendamentoId;
+      console.log('ID clicado para editar:', agendamentoId);
+      console.log('Agendamentos disponíveis:', database.agendamentos);
+      
+      const agendamento = database.agendamentos.find(ag => ag.id === agendamentoId);
+      console.log('Agendamento encontrado:', agendamento);
+      
       if (agendamento) {
         abrirModalEdicao(agendamento);
       } else {
-        console.error('Agendamento não encontrado com ID:', agendamentoId, database.agendamentos);
+        console.error('Agendamento não encontrado com ID:', agendamentoId);
       }
       return;
     }
@@ -934,7 +940,7 @@
     // Salvar status
     const saveBtn = e.target.closest('.salvar-status-btn');
     if (saveBtn) {
-      const agendamentoId = String(saveBtn.dataset.agendamentoId);
+      const agendamentoId = saveBtn.dataset.agendamentoId;
       const select = document.querySelector(`select.status-select[data-agendamento-id="${agendamentoId}"]`);
       const novoStatus = select ? select.value : null;
       if (!novoStatus) return;
@@ -961,7 +967,7 @@
     // Excluir
     const delBtn = e.target.closest('.excluir-agendamento-btn');
     if (delBtn) {
-      const agendamentoId = String(delBtn.dataset.agendamentoId);
+      const agendamentoId = delBtn.dataset.agendamentoId;
       if (!confirm('Tem certeza que deseja excluir este agendamento?')) return;
 
       delBtn.disabled = true;
@@ -997,13 +1003,13 @@
       return;
     }
     
-    document.getElementById('editAgendamentoId').value = normalizarId(agendamento);
-    document.getElementById('editNome').value = agendamento.nome ?? '';
-    document.getElementById('editTelefone').value = agendamento.telefone ?? '';
-    document.getElementById('editServico').value = agendamento.servico ?? '';
-    document.getElementById('editData').value = agendamento.data ?? '';
-    document.getElementById('editHorario').value = agendamento.horario ?? '';
-    document.getElementById('editStatus').value = agendamento.status ?? 'pendente';
+    document.getElementById('editAgendamentoId').value = agendamento.id;
+    document.getElementById('editNome').value = agendamento.nome || '';
+    document.getElementById('editTelefone').value = agendamento.telefone || '';
+    document.getElementById('editServico').value = agendamento.servico || '';
+    document.getElementById('editData').value = agendamento.data || '';
+    document.getElementById('editHorario').value = agendamento.horario || '';
+    document.getElementById('editStatus').value = agendamento.status || 'pendente';
     
     console.log('Removendo classe hidden...');
     modal.classList.remove('hidden');
@@ -1065,17 +1071,22 @@
       status: document.getElementById('editStatus').value
     };
 
+    console.log('Enviando atualização:', { agendamentoId, dadosAtualizados });
+
     const submitBtn = e.target.querySelector('button[type="submit"]');
     const originalText = submitBtn.textContent;
     submitBtn.disabled = true;
     submitBtn.textContent = '⏳ Salvando...';
 
     try {
-      await atualizarAgendamento(agendamentoId, dadosAtualizados);
+      const resultado = await atualizarAgendamento(agendamentoId, dadosAtualizados);
+      console.log('Resultado da atualização:', resultado);
+      
       mostrarMensagem('Agendamento atualizado com sucesso!', 'success');
       fecharModalEdicao();
       carregarEMostrarAgendamentos(); // Recarrega a lista
     } catch (err) {
+      console.error('Erro detalhado ao atualizar:', err);
       mostrarMensagem('Erro ao atualizar agendamento: ' + err.message, 'error');
     } finally {
       submitBtn.disabled = false;
