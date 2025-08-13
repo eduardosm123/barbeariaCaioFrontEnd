@@ -1154,9 +1154,8 @@
       const horarioSelect = document.getElementById('novoHorario');
       horarioSelect.innerHTML = '<option value="">Select a date first</option>';
       
-      // Definir data mínima como hoje
-      const hoje = new Date().toISOString().split('T')[0];
-      document.getElementById('novoData').min = hoje;
+      // ADMIN: Permitir agendamentos em qualquer data (passado/futuro) - sem data mínima
+      console.log('👨‍💼 Modo Admin: Permitindo seleção de qualquer data');
       
       // Selecionar "confirmado" por padrão
       document.getElementById('novoStatus').value = 'confirmado';
@@ -1423,14 +1422,8 @@
       const horariosOcupados = new Set(agendamentosConfirmados.map(ag => ag.horario));
       console.log('🚫 Horários ocupados (confirmados):', Array.from(horariosOcupados));
 
-      // Verificar se é hoje para filtrar horários que já passaram
-      const hoje = new Date();
-      const dataAtual = hoje.toISOString().split('T')[0];
-      const horaAtual = hoje.toTimeString().split(' ')[0].substring(0, 5);
-      const isHoje = dataSelecionada === dataAtual;
-      
-      console.log('📅 Data atual:', dataAtual, '- Hora atual:', horaAtual);
-      console.log('🗓️ É hoje?', isHoje);
+      // ADMIN: Permitir agendamentos no passado - não filtrar horários que já passaram
+      console.log('👨‍💼 Modo Admin: Permitindo agendamentos em qualquer horário (passado/futuro)');
 
       horarioSelect.innerHTML = '<option value="">Select a time</option>';
 
@@ -1442,12 +1435,7 @@
               let horariosValidos = 0;
               
               horariosDoDia.forEach(h => {
-                  // Se é hoje, verificar se o horário já passou
-                  if (isHoje && h <= horaAtual) {
-                      console.log('⏰ Horário', h, 'já passou (atual:', horaAtual, ')');
-                      return; // Pula este horário - não adiciona ao select
-                  }
-
+                  // ADMIN: Não verificar se horário já passou - permitir agendamentos no passado
                   const opt = document.createElement('option');
                   opt.value = h;
                   if (horariosOcupados.has(h)) {
@@ -1463,11 +1451,7 @@
 
               // Se nenhum horário válido restou
               if (horariosValidos === 0) {
-                  if (isHoje) {
-                      horarioSelect.innerHTML = '<option value="">All times for today have passed</option>';
-                  } else {
-                      horarioSelect.innerHTML = '<option value="">All times are occupied</option>';
-                  }
+                  horarioSelect.innerHTML = '<option value="">All times are occupied</option>';
               }
           }
       } else {
