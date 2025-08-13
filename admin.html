@@ -18,7 +18,6 @@
 
 <body class="bg-gray-900 text-white min-h-screen">
 
-    <!-- Login -->
     <div id="loginScreen" class="min-h-screen flex items-center justify-center p-4">
         <div class="bg-gray-800 rounded-2xl shadow-2xl p-8 w-full max-w-md">
             <div class="text-center mb-8">
@@ -66,9 +65,7 @@
         </div>
     </div>
 
-    <!-- Dashboard -->
     <div id="adminDashboard" class="hidden">
-        <!-- Header -->
         <header class="bg-gray-800 border-b border-gray-700 p-4">
             <div class="container mx-auto flex items-center justify-between">
                 <h1 class="text-2xl font-bold text-gold">Admin Dashboard</h1>
@@ -80,12 +77,11 @@
             </div>
         </header>
 
-        <!-- Nav -->
         <nav class="bg-gray-800 border-b border-gray-700">
             <div class="container mx-auto">
                 <div class="flex space-x-8">
                     <button class="tab-btn active px-4 py-3 text-white border-b-2 border-gold"
-                      data-tab="agendamentos">Appointments</button>
+                        data-tab="agendamentos">Appointments</button>
                     <button class="tab-btn px-4 py-3 text-gray-400 hover:text-white border-b-2 border-transparent hover:border-gray-600"
                         data-tab="horarios">Manage Hours</button>
                     <button
@@ -95,9 +91,7 @@
             </div>
         </nav>
 
-        <!-- Content -->
         <main class="container mx-auto p-6">
-            <!-- Agendamentos -->
             <div id="agendamentosTab" class="tab-content">
                 <div class="bg-gray-800 rounded-lg p-6">
                     <div class="flex justify-between items-center mb-6">
@@ -113,12 +107,11 @@
                             </button>
                             <button id="recarregarAgendamentos"
                                 class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors text-sm">
-                                🔄 Recarregar
+                                🔄 Reload
                             </button>
                         </div>
                     </div>
 
-                    <!-- Filtros -->
                     <div class="grid md:grid-cols-3 gap-4 mb-6 p-4 bg-gray-700 rounded-lg">
                       <div>
                         <label class="block text-sm font-medium text-gray-300 mb-2">Filter by Date</label>
@@ -145,14 +138,12 @@
                       </div>
                     </div>
 
-                    <!-- Lista de Agendamentos -->
                     <div id="agendamentosLista" class="space-y-4">
                         <div class="text-center py-8 text-gray-400">
                             Loading appointments...
                         </div>
                     </div>
 
-                    <!-- Paginação -->
                     <div id="paginationContainer" class="mt-6 hidden">
                         <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
                             <div class="text-sm text-gray-400">
@@ -189,14 +180,12 @@
                 </div>
             </div>
 
-            <!-- Horários -->
             <div id="horariosTab" class="tab-content hidden">
                 <div class="bg-gray-800 rounded-lg p-6">
                     <h2 class="text-xl font-bold mb-6">Manage Available Hours</h2>
 
                     <div id="diasGrid" class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        <!-- cartões de dias gerados via JS -->
-                    </div>
+                        </div>
 
                     <div class="flex flex-col sm:flex-row sm:justify-between mt-8 gap-4">
                       <div class="flex flex-col sm:flex-row gap-2 sm:space-x-4 sm:gap-0">
@@ -216,7 +205,6 @@
                     <div id="saveMsg" class="mt-4 hidden"></div>
                 </div>
                 
-                <!-- Botão Flutuante - Voltar ao Topo (apenas na aba Horários) -->
                 <button id="backToTopBtn" 
                     class="fixed bottom-6 right-6 bg-gold hover:bg-darkgold text-black p-3 rounded-full shadow-lg transition-all duration-300 opacity-0 invisible z-40">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -225,7 +213,6 @@
                 </button>
             </div>
 
-            <!-- Alterar Senha -->
             <div id="senhaTab" class="tab-content hidden">
                 <div class="bg-gray-800 rounded-lg p-6 max-w-md">
                     <h2 class="text-xl font-bold mb-6">Change Password</h2>
@@ -302,10 +289,8 @@
         </main>
     </div>
 
-    <!-- Modal de Edição de Agendamento -->
     <div id="editModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-gray-800 rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto">
-            <!-- Header do Modal -->
             <div class="p-6 border-b border-gray-700">
                 <div class="flex items-center justify-between">
                     <h2 class="text-xl font-bold text-gold">Edit Appointment</h2>
@@ -317,29 +302,24 @@
                 </div>
             </div>
 
-            <!-- Formulário de Edição -->
             <form id="editForm" class="p-6 space-y-4">
                 <input type="hidden" id="editAgendamentoId">
                 
-                <!-- Nome -->
                 <div>
                     <label for="editNome" class="block text-sm font-medium text-gray-300 mb-2">Name</label>
                     <input type="text" id="editNome" required
                         class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-gold focus:border-transparent text-white">
                 </div>
 
-                <!-- Telefone -->
                 <div>
                     <label for="editTelefone" class="block text-sm font-medium text-gray-300 mb-2">Phone</label>
                     <input type="tel" id="editTelefone" required
                         class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-gold focus:border-transparent text-white">
                 </div>
 
-                <!-- Serviço -->
                 <div>
                     <label class="block text-sm font-medium text-gray-300 mb-2">Service</label>
                     <div id="editServicosGroup" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <!-- Corte -->
                         <label class="cursor-pointer">
                             <input type="checkbox" name="editServicos" value="Corte Masculino" data-minutos="20" class="peer sr-only">
                             <div class="w-full rounded-lg border border-gray-600 px-3 py-2 text-sm flex items-center justify-between
@@ -350,18 +330,16 @@
                             </div>
                         </label>
 
-                        <!-- Barba & Bigode -->
                         <label class="cursor-pointer">
                             <input type="checkbox" name="editServicos" value="Barba & Bigode" data-minutos="10" class="peer sr-only">
                             <div class="w-full rounded-lg border border-gray-600 px-3 py-2 text-sm flex items-center justify-between
                                 hover:border-gold transition-colors
                                 peer-checked:border-gold peer-checked:bg-gold/10">
-                                <span class="font-medium">Barba &amp; Bigode</span>
+                                <span class="font-medium">Barba & Bigode</span>
                                 <span class="text-gold font-semibold">10 min</span>
                             </div>
                         </label>
 
-                        <!-- Skincare -->
                         <label class="cursor-pointer">
                             <input type="checkbox" name="editServicos" value="Skincare" data-minutos="15" class="peer sr-only">
                             <div class="w-full rounded-lg border border-gray-600 px-3 py-2 text-sm flex items-center justify-between
@@ -372,7 +350,6 @@
                             </div>
                         </label>
 
-                        <!-- Queratina -->
                         <label class="cursor-pointer">
                             <input type="checkbox" name="editServicos" value="Queratina" data-minutos="60" class="peer sr-only">
                             <div class="w-full rounded-lg border border-gray-600 px-3 py-2 text-sm flex items-center justify-between
@@ -383,24 +360,21 @@
                             </div>
                         </label>
                     </div>
-                    <p class="text-xs text-gray-400 mt-1">Selecione um ou mais serviços</p>
+                    <p class="text-xs text-gray-400 mt-1">Select one or more services</p>
                 </div>
 
-                <!-- Data -->
                 <div>
                     <label for="editData" class="block text-sm font-medium text-gray-300 mb-2">Date</label>
                     <input type="date" id="editData" required
                         class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-gold focus:border-transparent text-white">
                 </div>
 
-                <!-- Horário -->
                 <div>
                     <label for="editHorario" class="block text-sm font-medium text-gray-300 mb-2">Time</label>
                     <input type="time" id="editHorario" required
                         class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-gold focus:border-transparent text-white">
                 </div>
 
-                <!-- Status -->
                 <div>
                     <label for="editStatus" class="block text-sm font-medium text-gray-300 mb-2">Status</label>
                     <select id="editStatus" required
@@ -412,7 +386,6 @@
                     </select>
                 </div>
 
-                <!-- Botões -->
                 <div class="flex gap-3 pt-4">
                     <button type="button" id="cancelEditBtn"
                         class="flex-1 px-4 py-2 bg-gray-600 hover:bg-gray-500 text-white rounded-lg transition-colors">
@@ -426,11 +399,9 @@
             </form>
         </div>
     </div>
-
-    <!-- Modal de Novo Agendamento -->
+    
     <div id="novoAgendamentoModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-gray-800 rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto">
-            <!-- Header do Modal -->
             <div class="p-6 border-b border-gray-700">
                 <div class="flex items-center justify-between">
                     <h2 class="text-xl font-bold text-gold">New Appointment</h2>
@@ -442,16 +413,13 @@
                 </div>
             </div>
 
-            <!-- Formulário de Novo Agendamento -->
             <form id="novoAgendamentoForm" class="p-6 space-y-4">
-                <!-- Nome -->
                 <div>
                     <label for="novoNome" class="block text-sm font-medium text-gray-300 mb-2">Name</label>
                     <input type="text" id="novoNome" required
                         class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-gold focus:border-transparent text-white">
                 </div>
 
-                <!-- Telefone -->
                 <div>
                     <label for="novoTelefone" class="block text-sm font-medium text-gray-300 mb-2">Phone</label>
                     <input type="tel" id="novoTelefone" required inputmode="tel"
@@ -459,65 +427,47 @@
                         placeholder="(00) 00000-0000" pattern="^\(\d{2}\) \d{4,5}-\d{4}$" maxlength="15">
                 </div>
 
-                <!-- Serviços -->
                 <div>
                     <label class="block text-sm font-medium text-gray-300 mb-2">Services</label>
                     <div id="novoServicosGroup" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <!-- Corte -->
                         <label class="cursor-pointer">
                             <input type="checkbox" name="novoServicos" value="Corte Masculino" data-minutos="20" class="peer sr-only">
-                            <div class="w-full rounded-lg border border-gray-600 px-3 py-2 text-sm flex items-center justify-between
-                                hover:border-gold transition-colors
-                                peer-checked:border-gold peer-checked:bg-gold/10">
+                            <div class="w-full rounded-lg border border-gray-600 px-3 py-2 text-sm flex items-center justify-between hover:border-gold transition-colors peer-checked:border-gold peer-checked:bg-gold/10">
                                 <span class="font-medium">Corte Masculino</span>
                                 <span class="text-gold font-semibold">20 min</span>
                             </div>
                         </label>
-
-                        <!-- Barba & Bigode -->
                         <label class="cursor-pointer">
                             <input type="checkbox" name="novoServicos" value="Barba & Bigode" data-minutos="10" class="peer sr-only">
-                            <div class="w-full rounded-lg border border-gray-600 px-3 py-2 text-sm flex items-center justify-between
-                                hover:border-gold transition-colors
-                                peer-checked:border-gold peer-checked:bg-gold/10">
-                                <span class="font-medium">Barba &amp; Bigode</span>
+                            <div class="w-full rounded-lg border border-gray-600 px-3 py-2 text-sm flex items-center justify-between hover:border-gold transition-colors peer-checked:border-gold peer-checked:bg-gold/10">
+                                <span class="font-medium">Barba & Bigode</span>
                                 <span class="text-gold font-semibold">10 min</span>
                             </div>
                         </label>
-
-                        <!-- Skincare -->
                         <label class="cursor-pointer">
                             <input type="checkbox" name="novoServicos" value="Skincare" data-minutos="15" class="peer sr-only">
-                            <div class="w-full rounded-lg border border-gray-600 px-3 py-2 text-sm flex items-center justify-between
-                                hover:border-gold transition-colors
-                                peer-checked:border-gold peer-checked:bg-gold/10">
+                            <div class="w-full rounded-lg border border-gray-600 px-3 py-2 text-sm flex items-center justify-between hover:border-gold transition-colors peer-checked:border-gold peer-checked:bg-gold/10">
                                 <span class="font-medium">Skincare</span>
                                 <span class="text-gold font-semibold">15 min</span>
                             </div>
                         </label>
-
-                        <!-- Queratina -->
                         <label class="cursor-pointer">
                             <input type="checkbox" name="novoServicos" value="Queratina" data-minutos="60" class="peer sr-only">
-                            <div class="w-full rounded-lg border border-gray-600 px-3 py-2 text-sm flex items-center justify-between
-                                hover:border-gold transition-colors
-                                peer-checked:border-gold peer-checked:bg-gold/10">
+                            <div class="w-full rounded-lg border border-gray-600 px-3 py-2 text-sm flex items-center justify-between hover:border-gold transition-colors peer-checked:border-gold peer-checked:bg-gold/10">
                                 <span class="font-medium">Queratina</span>
                                 <span class="text-gold font-semibold">1h</span>
                             </div>
                         </label>
                     </div>
-                    <p class="text-xs text-gray-400 mt-1">Select one or more services</p>
+                    <p id="novoServicosErro" class="text-sm text-red-400 mt-1 hidden">Select at least one service.</p>
                 </div>
 
-                <!-- Data -->
                 <div>
                     <label for="novoData" class="block text-sm font-medium text-gray-300 mb-2">Date</label>
                     <input type="date" id="novoData" required
                         class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-gold focus:border-transparent text-white">
                 </div>
 
-                <!-- Horário -->
                 <div>
                     <label for="novoHorario" class="block text-sm font-medium text-gray-300 mb-2">Time</label>
                     <select id="novoHorario" required
@@ -526,7 +476,6 @@
                     </select>
                 </div>
 
-                <!-- Status -->
                 <div>
                     <label for="novoStatus" class="block text-sm font-medium text-gray-300 mb-2">Status</label>
                     <select id="novoStatus" required
@@ -538,7 +487,6 @@
                     </select>
                 </div>
 
-                <!-- Botões -->
                 <div class="flex gap-3 pt-4">
                     <button type="button" id="cancelNovoAgendamentoBtn"
                         class="flex-1 px-4 py-2 bg-gray-600 hover:bg-gray-500 text-white rounded-lg transition-colors">
@@ -552,6 +500,7 @@
             </form>
         </div>
     </div>
+
 
  <script>
   const API = 'https://barbeariacaio.onrender.com';
@@ -658,7 +607,10 @@
       headers,
       body: JSON.stringify(data)
     });
-    if (!r.ok) throw new Error(`POST ${path} -> ${r.status}`);
+    if (!r.ok) {
+        const errorBody = await r.json().catch(() => ({ message: 'Unknown error' }));
+        throw new Error(errorBody.message || `POST ${path} -> ${r.status}`);
+    }
     return r.json();
   }
   
@@ -920,7 +872,7 @@
       storedCredentials.username = '';
       storedCredentials.password = '';
       
-      window.location.href = 'index.html';
+      window.location.href = 'admin.html'; // Recarrega a página de admin para a tela de login
     }
   });
 
@@ -982,7 +934,6 @@
       return `
         <div class="bg-gray-700 rounded-lg p-4">
           <h3 class="font-semibold text-lg mb-4 text-gold">${d.label}</h3>
-          <!-- uma coluna para não parecer duplicado -->
           <div class="space-y-2">${checks}</div>
         </div>
       `;
@@ -1104,6 +1055,8 @@
   // ---- GESTÃO DE AGENDAMENTOS ----
 
   function formatarData(dataStr) {
+    if (!dataStr) return 'N/A';
+    // Adiciona T00:00:00 para evitar problemas de fuso horário
     return new Date(`${dataStr}T00:00:00`).toLocaleDateString('pt-BR');
   }
 
@@ -1120,7 +1073,6 @@
   function criarCardAgendamento(agendamento) {
     const statusInfo = formatarStatus(agendamento.status);
     const agId = String(agendamento.id); // Converter para string sempre
-    console.log('🎯 Criando card para agendamento:', agId, typeof agId, agendamento);
     
     return `
       <div class="bg-gray-700 rounded-lg p-4 border border-gray-600" data-agendamento-id="${agId}">
@@ -1181,7 +1133,7 @@
     const lista = document.getElementById('agendamentosLista');
     const paginationContainer = document.getElementById('paginationContainer');
     
-    lista.innerHTML = '<div class="text-center py-8 text-gray-400">Carregando agendamentos...</div>';
+    lista.innerHTML = '<div class="text-center py-8 text-gray-400">Loading appointments...</div>';
     paginationContainer.classList.add('hidden');
 
     try {
@@ -1206,7 +1158,7 @@
       
     } catch (err) {
       console.error('Erro ao carregar agendamentos:', err);
-      lista.innerHTML = '<div class="text-center py-8 text-red-400">Erro ao carregar agendamentos</div>';
+      lista.innerHTML = '<div class="text-center py-8 text-red-400">Error loading appointments</div>';
     }
   }
 
@@ -1214,11 +1166,10 @@
     const lista = document.getElementById('agendamentosLista');
     
     if (!agendamentos || agendamentos.length === 0) {
-      lista.innerHTML = '<div class="text-center py-8 text-gray-400">Nenhum agendamento encontrado</div>';
+      lista.innerHTML = '<div class="text-center py-8 text-gray-400">No appointments found</div>';
       return;
     }
 
-    // Como a API já retorna ordenados, não precisamos ordenar novamente
     lista.innerHTML = agendamentos.map(agendamento => criarCardAgendamento(agendamento)).join('');
   }
 
@@ -1327,29 +1278,22 @@
     }
   }
 
-  // ---- Delegação de eventos para a lista de agendamentos (CORREÇÃO) ----
+  // ---- Delegação de eventos para a lista de agendamentos ----
   function handleAgendamentosClick(e) {
     // Editar
     const editBtn = e.target.closest('.editar-agendamento-btn');
     if (editBtn) {
-      const agendamentoId = String(editBtn.dataset.agendamentoId); // Converter para string
-      console.log('🎯 ID clicado para editar:', agendamentoId, typeof agendamentoId);
-      console.log('🎯 Agendamentos disponíveis:', database.agendamentos.map(ag => ({ id: String(ag.id), tipo: typeof ag.id })));
-      
-      // Usar o mesmo padrão que funciona para status - converter ambos para string
+      const agendamentoId = String(editBtn.dataset.agendamentoId); 
       const agendamento = database.agendamentos.find(ag => String(ag.id) === agendamentoId);
-      console.log('🎯 Agendamento encontrado:', agendamento);
-      
       if (agendamento) {
         abrirModalEdicao(agendamento);
       } else {
         console.error('❌ Agendamento não encontrado com ID:', agendamentoId);
-        console.log('❌ IDs disponíveis:', database.agendamentos.map(ag => ({ id: ag.id, tipo: typeof ag.id })));
       }
       return;
     }
 
-    // Salvar status - já funciona
+    // Salvar status
     const saveBtn = e.target.closest('.salvar-status-btn');
     if (saveBtn) {
       const agendamentoId = saveBtn.dataset.agendamentoId;
@@ -1359,15 +1303,15 @@
 
       saveBtn.disabled = true;
       const originalText = saveBtn.textContent;
-      saveBtn.textContent = '⏳ Salvando...';
+      saveBtn.textContent = '⏳ Saving...';
 
       atualizarAgendamento(agendamentoId, { status: novoStatus })
         .then(() => {
-          mostrarMensagem('Status atualizado com sucesso!', 'success');
+          mostrarMensagem('Status updated successfully!', 'success');
           carregarEMostrarAgendamentos(currentPage);
         })
         .catch(err => {
-          mostrarMensagem('Erro ao atualizar status: ' + err.message, 'error');
+          mostrarMensagem('Error updating status: ' + err.message, 'error');
         })
         .finally(() => {
           saveBtn.disabled = false;
@@ -1376,23 +1320,23 @@
       return;
     }
 
-    // Excluir - já funciona
+    // Excluir
     const delBtn = e.target.closest('.excluir-agendamento-btn');
     if (delBtn) {
       const agendamentoId = delBtn.dataset.agendamentoId;
-      if (!confirm('Tem certeza que deseja excluir este agendamento?')) return;
+      if (!confirm('Are you sure you want to delete this appointment?')) return;
 
       delBtn.disabled = true;
       const originalText = delBtn.textContent;
-      delBtn.textContent = '⏳ Excluindo...';
+      delBtn.textContent = '⏳ Deleting...';
 
       excluirAgendamento(agendamentoId)
         .then(() => {
-          mostrarMensagem('Agendamento excluído com sucesso!', 'success');
+          mostrarMensagem('Appointment deleted successfully!', 'success');
           carregarEMostrarAgendamentos(currentPage);
         })
         .catch(err => {
-          mostrarMensagem('Erro ao excluir agendamento: ' + err.message, 'error');
+          mostrarMensagem('Error deleting appointment: ' + err.message, 'error');
         })
         .finally(() => {
           delBtn.disabled = false;
@@ -1405,15 +1349,8 @@
 
   // Funções do Modal de Edição
   function abrirModalEdicao(agendamento) {
-    console.log('Função abrirModalEdicao chamada com:', agendamento);
-    
     const modal = document.getElementById('editModal');
-    console.log('Modal encontrado:', modal);
-    
-    if (!modal) {
-      console.error('Modal não encontrado!');
-      return;
-    }
+    if (!modal) return;
     
     document.getElementById('editAgendamentoId').value = agendamento.id;
     document.getElementById('editNome').value = agendamento.nome || '';
@@ -1427,21 +1364,17 @@
       checkbox.checked = false;
     });
     
-    // Marcar os serviços selecionados (podem ser múltiplos separados por vírgula)
+    // Marcar os serviços selecionados
     if (agendamento.servico) {
       const servicosSelecionados = agendamento.servico.split(', ').map(s => s.trim());
       servicosSelecionados.forEach(servico => {
         const checkbox = document.querySelector(`input[name="editServicos"][value="${servico}"]`);
-        if (checkbox) {
-          checkbox.checked = true;
-        }
+        if (checkbox) checkbox.checked = true;
       });
     }
     
-    console.log('Removendo classe hidden...');
     modal.classList.remove('hidden');
     document.body.style.overflow = 'hidden';
-    console.log('Modal deveria estar visível agora');
   }
 
   function fecharModalEdicao() {
@@ -1461,18 +1394,7 @@
   
   // Formatação de telefone no modal
   document.getElementById('editTelefone')?.addEventListener('input', (e) => {
-    const value = e.target.value.replace(/\D/g, '').slice(0, 11);
-    const len = value.length;
-
-    if (len <= 2) {
-      e.target.value = value ? `(${value}` : '';
-    } else if (len <= 6) {
-      e.target.value = `(${value.slice(0, 2)}) ${value.slice(2)}`;
-    } else if (len <= 10) {
-      e.target.value = `(${value.slice(0, 2)}) ${value.slice(2, 6)}-${value.slice(6)}`;
-    } else {
-      e.target.value = `(${value.slice(0, 2)}) ${value.slice(2, 7)}-${value.slice(7, 11)}`;
-    }
+    e.target.value = formatBRPhone(e.target.value);
   });
   
   // Fechar modal clicando fora
@@ -1499,38 +1421,34 @@
     const servicosEls = document.querySelectorAll('input[name="editServicos"]:checked');
     const servicosSelecionados = Array.from(servicosEls).map(el => el.value);
     
-    // Validar se pelo menos um serviço foi selecionado
     if (servicosSelecionados.length === 0) {
-      mostrarMensagem('Erro: Selecione pelo menos um serviço', 'error');
+      mostrarMensagem('Error: Select at least one service', 'error');
       return;
     }
     
     const dadosAtualizados = {
       nome: document.getElementById('editNome').value.trim(),
       telefone: document.getElementById('editTelefone').value.trim(),
-      servico: servicosSelecionados.join(', '), // Juntar com vírgula como no index.html
+      servico: servicosSelecionados.join(', '), // Juntar com vírgula
       data: document.getElementById('editData').value,
       horario: document.getElementById('editHorario').value,
       status: document.getElementById('editStatus').value
     };
 
-    console.log('Enviando atualização:', { agendamentoId, dadosAtualizados });
-
     const submitBtn = e.target.querySelector('button[type="submit"]');
     const originalText = submitBtn.textContent;
     submitBtn.disabled = true;
-    submitBtn.textContent = '⏳ Salvando...';
+    submitBtn.textContent = '⏳ Saving...';
 
     try {
-      const resultado = await atualizarAgendamento(agendamentoId, dadosAtualizados);
-      console.log('Resultado da atualização:', resultado);
+      await atualizarAgendamento(agendamentoId, dadosAtualizados);
       
-      mostrarMensagem('Agendamento atualizado com sucesso!', 'success');
+      mostrarMensagem('Appointment updated successfully!', 'success');
       fecharModalEdicao();
       carregarEMostrarAgendamentos(currentPage); // Recarrega a lista
     } catch (err) {
       console.error('Erro detalhado ao atualizar:', err);
-      mostrarMensagem('Erro ao atualizar agendamento: ' + err.message, 'error');
+      mostrarMensagem('Error updating appointment: ' + err.message, 'error');
     } finally {
       submitBtn.disabled = false;
       submitBtn.textContent = originalText;
@@ -1573,8 +1491,8 @@
 
   document.getElementById('limparAgendamentosPassados')?.addEventListener('click', async () => {
     const confirmacao = confirm(
-      'Tem certeza que deseja remover TODOS os agendamentos que já passaram?\n\n' +
-      'Esta ação não pode ser desfeita!'
+      'Are you sure you want to remove ALL past appointments?\n\n' +
+      'This action cannot be undone!'
     );
     
     if (!confirmacao) return;
@@ -1582,7 +1500,7 @@
     const btn = document.getElementById('limparAgendamentosPassados');
     const originalText = btn.textContent;
     btn.disabled = true;
-    btn.textContent = '⏳ Limpando...';
+    btn.textContent = '⏳ Cleaning...';
 
     try {
       const resultado = await limparAgendamentosPassados();
@@ -1591,7 +1509,7 @@
         mostrarMensagem(resultado.message, 'info');
       } else {
         mostrarMensagem(
-          `✅ ${resultado.removidos} agendamento(s) passado(s) removido(s) com sucesso!`, 
+          `✅ ${resultado.removidos} past appointment(s) removed successfully!`, 
           'success'
         );
         
@@ -1603,7 +1521,7 @@
       
     } catch (err) {
       console.error('Erro ao limpar agendamentos passados:', err);
-      mostrarMensagem('Erro ao limpar agendamentos passados: ' + err.message, 'error');
+      mostrarMensagem('Error cleaning past appointments: ' + err.message, 'error');
     } finally {
       btn.disabled = false;
       btn.textContent = originalText;
@@ -1642,15 +1560,18 @@
     }
   });
 
-  // ---- MODAL DE NOVO AGENDAMENTO ----
+  // ---- NOVO: MODAL DE NOVO AGENDAMENTO ----
   
-  // Funções do modal de novo agendamento
   function abrirModalNovoAgendamento() {
       document.getElementById('novoAgendamentoModal').classList.remove('hidden');
       document.body.classList.add('overflow-hidden');
       
       // Limpar formulário
       document.getElementById('novoAgendamentoForm').reset();
+      
+      // Limpar o select de horários
+      const horarioSelect = document.getElementById('novoHorario');
+      horarioSelect.innerHTML = '<option value="">Select a date first</option>';
       
       // Definir data mínima como hoje
       const hoje = new Date().toISOString().split('T')[0];
@@ -1670,68 +1591,58 @@
   document.getElementById('closeNovoAgendamentoModal')?.addEventListener('click', fecharModalNovoAgendamento);
   document.getElementById('cancelNovoAgendamentoBtn')?.addEventListener('click', fecharModalNovoAgendamento);
 
-  // Fechar modal clicando fora
   document.getElementById('novoAgendamentoModal')?.addEventListener('click', (e) => {
       if (e.target === e.currentTarget) {
           fecharModalNovoAgendamento();
       }
   });
+  
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !document.getElementById('novoAgendamentoModal').classList.contains('hidden')) {
+      fecharModalNovoAgendamento();
+    }
+  });
 
   // Submissão do formulário de novo agendamento
   document.getElementById('novoAgendamentoForm')?.addEventListener('submit', async (e) => {
       e.preventDefault();
-
-      const nome = document.getElementById('novoNome').value.trim();
-      const telefone = document.getElementById('novoTelefone').value.trim();
-      const data = document.getElementById('novoData').value;
-      const horario = document.getElementById('novoHorario').value;
-      const status = document.getElementById('novoStatus').value;
-
-      // Coletar serviços selecionados
-      const servicosSelecionados = [];
-      const checkboxes = document.querySelectorAll('input[name="novoServicos"]:checked');
       
-      if (checkboxes.length === 0) {
-          alert('Please select at least one service.');
+      const servicosEls = Array.from(document.querySelectorAll('input[name="novoServicos"]:checked'));
+      const servicosErro = document.getElementById('novoServicosErro');
+
+      if (servicosEls.length === 0) {
+          servicosErro.classList.remove('hidden');
           return;
+      } else {
+          servicosErro.classList.add('hidden');
       }
 
-      checkboxes.forEach(checkbox => {
-          servicosSelecionados.push(checkbox.value);
-      });
+      const dadosAgendamento = {
+          nome: document.getElementById('novoNome').value.trim(),
+          telefone: document.getElementById('novoTelefone').value.trim(),
+          servico: servicosEls.map(el => el.value).join(', '),
+          data: document.getElementById('novoData').value,
+          horario: document.getElementById('novoHorario').value,
+          status: document.getElementById('novoStatus').value
+      };
 
-      const servicos = servicosSelecionados.join(' + ');
-
+      const submitBtn = e.target.querySelector('button[type="submit"]');
+      const originalText = submitBtn.textContent;
+      submitBtn.disabled = true;
+      submitBtn.textContent = '⏳ Creating...';
+      
       try {
-          const response = await fetch('http://localhost:3000/agendamentos', {
-              method: 'POST',
-              headers: {
-                  'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({
-                  nome,
-                  telefone,
-                  servicos,
-                  data,
-                  horario,
-                  status
-              })
-          });
-
-          const result = await response.json();
-
-          if (response.ok) {
-              alert('Appointment created successfully!');
-              fecharModalNovoAgendamento();
-              
-              // Recarregar a lista de agendamentos
-              carregarAgendamentosPaginados();
-          } else {
-              alert(result.error || 'Error creating appointment');
-          }
+          await apiPost('/agendamentos', dadosAgendamento);
+          
+          mostrarMensagem('Appointment created successfully!', 'success');
+          fecharModalNovoAgendamento();
+          carregarEMostrarAgendamentos(1, true); // Recarrega a lista na página 1 e limpa filtros
       } catch (error) {
           console.error('Error creating appointment:', error);
-          alert('Error creating appointment. Please try again.');
+          mostrarMensagem(`Error: ${error.message}`, 'error');
+      } finally {
+          submitBtn.disabled = false;
+          submitBtn.textContent = originalText;
       }
   });
 
@@ -1739,7 +1650,7 @@
   const novoTelefoneInput = document.getElementById('novoTelefone');
   
   function formatBRPhone(value) {
-      const d = value.replace(/\D/g, '').slice(0, 11); // só números, no máx 11
+      const d = value.replace(/\D/g, '').slice(0, 11);
       const len = d.length;
 
       if (!len) return '';
@@ -1751,96 +1662,42 @@
       } else if (len <= 10) {
           return `(${d.slice(0, 2)}) ${d.slice(2, 6)}-${d.slice(6)}`;
       } else {
-          // 11 dígitos (celular)
           return `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7, 11)}`;
       }
   }
 
   novoTelefoneInput?.addEventListener('input', (e) => {
-      const cursorEnd = e.target.selectionEnd;
-      const before = e.target.value;
-      e.target.value = formatBRPhone(before);
-      // comportamento simples: mantém o cursor no fim
-      e.target.setSelectionRange(e.target.value.length, e.target.value.length);
+      e.target.value = formatBRPhone(e.target.value);
   });
-
-  // mensagem de validação amigável
+  
   novoTelefoneInput?.addEventListener('blur', (e) => {
       const ok = /^\(\d{2}\) \d{4,5}-\d{4}$/.test(e.target.value);
-      e.target.setCustomValidity(ok || e.target.value === '' ? '' : 'Digite um telefone válido: (11) 91234-5678');
+      e.target.setCustomValidity(ok || e.target.value === '' ? '' : 'Enter a valid phone: (11) 91234-5678');
   });
 
-  // Sistema de horários disponíveis (baseado no index.html)
-  let horariosCache = null;
-
-  const diasSemana = {
-      'Domingo': 'domingo',
+  // Sistema de horários disponíveis (baseado no index.html e adaptado para admin)
+  const diasSemanaMap = {
       'Segunda-feira': 'segunda',
       'Terça-feira': 'terca',
       'Quarta-feira': 'quarta',
       'Quinta-feira': 'quinta',
       'Sexta-feira': 'sexta',
-      'Sábado': 'sabado'
+      'Sábado': 'sabado',
+      'Domingo': 'domingo'
   };
 
-  async function carregarHorariosDisponiveis() {
-      if (horariosCache) return horariosCache;
-
+  async function carregarHorariosAgendadosParaData(data) {
       try {
-          const r = await fetch('http://localhost:3000/horarios', {
-              method: 'GET',
-              headers: { 'Content-Type': 'application/json' }
-          });
-
-          if (!r.ok) throw new Error(`HTTP ${r.status}`);
-
-          const data = await r.json();
-          console.log('📅 Horários carregados do servidor:', data);
-
-          horariosCache = data;
-          return data;
-
+          const todosAgendamentos = await apiGet(`/agendamentos?data=${data}`);
+          return todosAgendamentos.filter(ag => ag.status === 'confirmado');
       } catch (error) {
-          console.warn('⚠️ Erro ao carregar horários do servidor:', error);
-          // Fallback
-          horariosCache = {
-              segunda: ['09:00', '10:00', '14:00', '15:00', '16:00'],
-              terca: ['09:00', '10:00', '14:00', '15:00', '16:00'],
-              quarta: ['09:00', '10:00', '14:00', '15:00', '16:00'],
-              quinta: ['09:00', '10:00', '14:00', '15:00', '16:00'],
-              sexta: ['09:00', '10:00', '14:00', '15:00', '16:00'],
-              sabado: ['09:00', '10:00', '14:00'],
-              domingo: []
-          };
-          return horariosCache;
-      }
-  }
-
-  async function carregarAgendamentosPorData(data) {
-      console.log('🔄 Carregando agendamentos para data:', data);
-      try {
-          const r = await fetch('http://localhost:3000/agendamentos', {
-              method: 'GET',
-              headers: { 'Content-Type': 'application/json' }
-          });
-          const todosAgendamentos = await r.json();
-
-          // Filtra apenas os agendamentos confirmados para a data específica
-          const agendamentosConfirmados = todosAgendamentos.filter(ag => 
-              ag.data === data && ag.status === 'confirmado'
-          );
-
-          console.log('✅ Agendamentos confirmados para', data, ':', agendamentosConfirmados);
-          return agendamentosConfirmados;
-      } catch (error) {
-          console.warn('⚠️ Erro ao carregar agendamentos:', error);
+          console.warn('⚠️ Error loading scheduled appointments:', error);
           return [];
       }
   }
 
-  // Event listener para mudança de data
+  // Event listener para mudança de data no modal de novo agendamento
   document.getElementById('novoData')?.addEventListener('change', async function () {
-      console.log('📅 Data selecionada no admin:', this.value);
       const dataSelecionada = this.value;
       const horarioSelect = document.getElementById('novoHorario');
 
@@ -1853,49 +1710,27 @@
       const data = new Date(`${dataSelecionada}T00:00:00`);
       const nomeDia = data.toLocaleDateString('pt-BR', { weekday: 'long' });
       const nomeDiaFormatado = nomeDia.charAt(0).toUpperCase() + nomeDia.slice(1);
-      console.log('📆 Dia da semana detectado:', nomeDiaFormatado);
+      const diaChave = diasSemanaMap[nomeDiaFormatado];
 
-      const diaChave = diasSemana[nomeDiaFormatado];
-      console.log('🔑 Chave do dia:', diaChave);
-
-      const horariosDisponiveis = await carregarHorariosDisponiveis();
-      console.log('⏰ Horários disponíveis para', diaChave, ':', horariosDisponiveis[diaChave]);
-
-      // Carregar agendamentos confirmados para esta data
-      const agendamentosConfirmados = await carregarAgendamentosPorData(dataSelecionada);
+      const horariosDisponiveis = database.horarios; // Usa os horários já carregados
+      const agendamentosConfirmados = await carregarHorariosAgendadosParaData(dataSelecionada);
       const horariosOcupados = new Set(agendamentosConfirmados.map(ag => ag.horario));
-      console.log('🚫 Horários ocupados (confirmados):', Array.from(horariosOcupados));
 
-      // Verificar se é hoje para filtrar horários que já passaram
       const hoje = new Date();
       const dataAtual = hoje.toISOString().split('T')[0];
       const horaAtual = hoje.toTimeString().split(' ')[0].substring(0, 5);
       const isHoje = dataSelecionada === dataAtual;
-      
-      console.log('📅 Data atual:', dataAtual, '- Hora atual:', horaAtual);
-      console.log('🗓️ É hoje?', isHoje);
 
-      // Limpar e popular o select
       horarioSelect.innerHTML = '<option value="">Select a time</option>';
 
-      if (!horariosDisponiveis) {
-          horarioSelect.innerHTML = '<option value="">Error loading schedules</option>';
-          return;
-      }
-
       if (diaChave && Array.isArray(horariosDisponiveis[diaChave])) {
-          const horarios = horariosDisponiveis[diaChave];
-          if (horarios.length === 0) {
+          const horariosDoDia = horariosDisponiveis[diaChave];
+          if (horariosDoDia.length === 0) {
               horarioSelect.innerHTML = '<option value="">Closed on this day</option>';
           } else {
               let horariosValidos = 0;
-              
-              horarios.forEach(h => {
-                  // Se é hoje, verificar se o horário já passou
-                  if (isHoje && h <= horaAtual) {
-                      console.log('⏰ Horário', h, 'já passou (atual:', horaAtual, ')');
-                      return; // Pula este horário - não adiciona ao select
-                  }
+              horariosDoDia.forEach(h => {
+                  if (isHoje && h <= horaAtual) return; // Pula horário passado
 
                   const opt = document.createElement('option');
                   opt.value = h;
@@ -1910,25 +1745,19 @@
                   horariosValidos++;
               });
 
-              // Se nenhum horário válido restou
               if (horariosValidos === 0) {
-                  if (isHoje) {
-                      horarioSelect.innerHTML = '<option value="">All times for today have passed</option>';
-                  } else {
-                      horarioSelect.innerHTML = '<option value="">All times are occupied</option>';
-                  }
+                  horarioSelect.innerHTML = `<option value="">${isHoje ? 'All times have passed' : 'All times are occupied'}</option>`;
               }
           }
       } else {
           horarioSelect.innerHTML = '<option value="">No schedules available</option>';
       }
   });
-
+  
   // ---- BOTÃO FLUTUANTE - VOLTAR AO TOPO ----
   const backToTopBtn = document.getElementById('backToTopBtn');
   const horariosTab = document.getElementById('horariosTab');
   
-  // Função para mostrar/ocultar o botão baseado no scroll
   function toggleBackToTopButton() {
     const isHorariosTabVisible = !horariosTab.classList.contains('hidden');
     const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
@@ -1942,18 +1771,14 @@
     }
   }
   
-  // Event listener para o scroll
   window.addEventListener('scroll', toggleBackToTopButton);
   
-  // Event listener para mudança de abas (mostrar/ocultar botão conforme aba ativa)
   document.querySelectorAll('.tab-btn').forEach(btn => {
     btn.addEventListener('click', () => {
-      // Pequeno delay para aguardar a mudança de aba
       setTimeout(toggleBackToTopButton, 100);
     });
   });
   
-  // Event listener para o clique no botão
   backToTopBtn?.addEventListener('click', () => {
     window.scrollTo({
       top: 0,
@@ -1961,9 +1786,8 @@
     });
   });
   
-  // Verificação inicial
   toggleBackToTopButton();
-</script>
+ </script>
 
 </body>
 
