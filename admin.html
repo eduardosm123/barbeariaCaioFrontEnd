@@ -141,6 +141,28 @@
                         </div>
                     </div>
 
+                    <!-- Paginação -->
+                    <div id="paginationContainer" class="mt-6 hidden">
+                        <div class="flex items-center justify-between">
+                            <div class="text-sm text-gray-400">
+                                Showing <span id="paginationInfo">0-0 of 0</span> appointments
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <button id="prevPageBtn" 
+                                    class="px-3 py-1 bg-gray-600 hover:bg-gray-500 text-white rounded disabled:opacity-50 disabled:cursor-not-allowed"
+                                    disabled>
+                                    ← Previous
+                                </button>
+                                <span id="pageNumbers" class="flex space-x-1"></span>
+                                <button id="nextPageBtn" 
+                                    class="px-3 py-1 bg-gray-600 hover:bg-gray-500 text-white rounded disabled:opacity-50 disabled:cursor-not-allowed"
+                                    disabled>
+                                    Next →
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
                     <div id="agendamentosMsg" class="mt-4 hidden"></div>
                 </div>
             </div>
@@ -387,6 +409,18 @@
   let bootDone = false;
   let sessionId = null; // Para gerenciar a sessão
   
+  // Estado de paginação
+  let currentPage = 1;
+  let totalPages = 1;
+  let totalItems = 0;
+  let itemsPerPage = 10;
+  let currentFilters = {
+    data: null,
+    status: null,
+    sortBy: 'created_at',
+    sortOrder: 'desc'
+  };
+  
   // Funções para gerenciar cookies
   function setCookie(name, value, days = 7) {
     const expires = new Date();
@@ -487,6 +521,48 @@
   }
 
   // Funções específicas para agendamentos
+  async function carregarAgendamentosPaginados(page = 1, filters = {}) {
+    try {
+      const params = new URLSearchParams({
+        page: page.toString(),
+        limit: itemsPerPage.toString(),
+        sortBy: currentFilters.sortBy,
+        sortOrder: currentFilters.sortOrder
+      });
+
+      // Adicionar filtros se existirem
+      if (filters.data) {
+        params.append('data', filters.data);
+      }
+      if (filters.status) {
+        params.append('status', filters.status);
+      }
+
+      const url = `/agendamentos/paginated?${params.toString()}`;
+      console.log('📋 Carregando agendamentos paginados:', url);
+      
+      const response = await apiGet(url);
+      console.log('📋 Resposta da API paginada:', response);
+      
+      // Atualizar estado de paginação
+      currentPage = response.pagination.currentPage;
+      totalPages = response.pagination.totalPages;
+      totalItems = response.pagination.totalItems;
+      
+      // Atualizar filtros atuais
+      currentFilters.data = response.filters.data;
+      currentFilters.status = response.filters.status;
+      
+      // Armazenar agendamentos no database para manter compatibilidade
+      database.agendamentos = response.data;
+      
+      return response;
+    } catch (err) {
+      console.error('Erro ao carregar agendamentos paginados:', err);
+      throw err;
+    }
+  }
+
   async function carregarAgendamentos() {
     try {
       const agendamentos = await apiGet('/agendamentos');
@@ -934,14 +1010,35 @@
     `;
   }
 
-  async function carregarEMostrarAgendamentos() {
+  async function carregarEMostrarAgendamentos(page = 1, resetFilters = false) {
     const lista = document.getElementById('agendamentosLista');
+    const paginationContainer = document.getElementById('paginationContainer');
+    
     lista.innerHTML = '<div class="text-center py-8 text-gray-400">Carregando agendamentos...</div>';
+    paginationContainer.classList.add('hidden');
 
     try {
-      const agendamentos = await carregarAgendamentos();
-      mostrarAgendamentos(agendamentos);
+      // Se resetFilters for true, limpa os filtros
+      if (resetFilters) {
+        currentFilters.data = null;
+        currentFilters.status = null;
+        document.getElementById('filtroData').value = '';
+        document.getElementById('filtroStatus').value = '';
+      }
+
+      // Obter filtros atuais dos campos de input
+      const filtros = {
+        data: document.getElementById('filtroData').value || null,
+        status: document.getElementById('filtroStatus').value || null
+      };
+
+      const response = await carregarAgendamentosPaginados(page, filtros);
+      
+      mostrarAgendamentos(response.data);
+      atualizarPaginacao(response.pagination);
+      
     } catch (err) {
+      console.error('Erro ao carregar agendamentos:', err);
       lista.innerHTML = '<div class="text-center py-8 text-red-400">Erro ao carregar agendamentos</div>';
     }
   }
@@ -954,15 +1051,57 @@
       return;
     }
 
-    // Ordenar por data e horário
-    const agendamentosOrdenados = agendamentos.sort((a, b) => {
-      const dateA = new Date(a.data + 'T' + a.horario);
-      const dateB = new Date(b.data + 'T' + b.horario);
-      return dateB - dateA; // Mais recentes primeiro
-    });
+    // Como a API já retorna ordenados, não precisamos ordenar novamente
+    lista.innerHTML = agendamentos.map(agendamento => criarCardAgendamento(agendamento)).join('');
+  }
 
-    lista.innerHTML = agendamentosOrdenados.map(agendamento => criarCardAgendamento(agendamento)).join('');
-    // (Delegação de eventos cuida dos cliques, então não precisamos reanexar listeners aqui)
+  function atualizarPaginacao(pagination) {
+    const container = document.getElementById('paginationContainer');
+    const info = document.getElementById('paginationInfo');
+    const prevBtn = document.getElementById('prevPageBtn');
+    const nextBtn = document.getElementById('nextPageBtn');
+    const pageNumbers = document.getElementById('pageNumbers');
+
+    if (pagination.totalItems === 0) {
+      container.classList.add('hidden');
+      return;
+    }
+
+    container.classList.remove('hidden');
+
+    // Atualizar informações
+    const start = ((pagination.currentPage - 1) * pagination.itemsPerPage) + 1;
+    const end = Math.min(start + pagination.itemsPerPage - 1, pagination.totalItems);
+    info.textContent = `${start}-${end} of ${pagination.totalItems}`;
+
+    // Atualizar botões prev/next
+    prevBtn.disabled = !pagination.hasPrevPage;
+    nextBtn.disabled = !pagination.hasNextPage;
+
+    // Gerar números das páginas
+    pageNumbers.innerHTML = '';
+    const maxVisiblePages = 5;
+    let startPage = Math.max(1, pagination.currentPage - Math.floor(maxVisiblePages / 2));
+    let endPage = Math.min(pagination.totalPages, startPage + maxVisiblePages - 1);
+
+    // Ajustar se não temos páginas suficientes no final
+    if (endPage - startPage + 1 < maxVisiblePages) {
+      startPage = Math.max(1, endPage - maxVisiblePages + 1);
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+      const button = document.createElement('button');
+      button.textContent = i;
+      button.className = `px-3 py-1 rounded ${i === pagination.currentPage 
+        ? 'bg-gold text-black font-semibold' 
+        : 'bg-gray-600 hover:bg-gray-500 text-white'}`;
+      
+      if (i !== pagination.currentPage) {
+        button.addEventListener('click', () => carregarEMostrarAgendamentos(i));
+      }
+      
+      pageNumbers.appendChild(button);
+    }
   }
 
   // ---- Delegação de eventos para a lista de agendamentos (CORREÇÃO) ----
@@ -1002,7 +1141,7 @@
       atualizarAgendamento(agendamentoId, { status: novoStatus })
         .then(() => {
           mostrarMensagem('Status atualizado com sucesso!', 'success');
-          carregarEMostrarAgendamentos();
+          carregarEMostrarAgendamentos(currentPage);
         })
         .catch(err => {
           mostrarMensagem('Erro ao atualizar status: ' + err.message, 'error');
@@ -1027,7 +1166,7 @@
       excluirAgendamento(agendamentoId)
         .then(() => {
           mostrarMensagem('Agendamento excluído com sucesso!', 'success');
-          carregarEMostrarAgendamentos();
+          carregarEMostrarAgendamentos(currentPage);
         })
         .catch(err => {
           mostrarMensagem('Erro ao excluir agendamento: ' + err.message, 'error');
@@ -1165,7 +1304,7 @@
       
       mostrarMensagem('Agendamento atualizado com sucesso!', 'success');
       fecharModalEdicao();
-      carregarEMostrarAgendamentos(); // Recarrega a lista
+      carregarEMostrarAgendamentos(currentPage); // Recarrega a lista
     } catch (err) {
       console.error('Erro detalhado ao atualizar:', err);
       mostrarMensagem('Erro ao atualizar agendamento: ' + err.message, 'error');
@@ -1186,32 +1325,33 @@
   }
 
   function filtrarAgendamentos() {
-    const filtroData = document.getElementById('filtroData').value;
-    const filtroStatus = document.getElementById('filtroStatus').value;
-    
-    let agendamentosFiltrados = [...database.agendamentos];
-
-    if (filtroData) {
-      agendamentosFiltrados = agendamentosFiltrados.filter(ag => ag.data === filtroData);
-    }
-
-    if (filtroStatus) {
-      agendamentosFiltrados = agendamentosFiltrados.filter(ag => ag.status === filtroStatus);
-    }
-
-    mostrarAgendamentos(agendamentosFiltrados);
+    // Aplicar filtros resetando para a primeira página
+    carregarEMostrarAgendamentos(1);
   }
 
   // Event listeners para agendamentos
-  document.getElementById('recarregarAgendamentos')?.addEventListener('click', carregarEMostrarAgendamentos);
+  document.getElementById('recarregarAgendamentos')?.addEventListener('click', () => {
+    carregarEMostrarAgendamentos(currentPage);
+  });
   
   document.getElementById('filtroData')?.addEventListener('change', filtrarAgendamentos);
   document.getElementById('filtroStatus')?.addEventListener('change', filtrarAgendamentos);
   
   document.getElementById('limparFiltros')?.addEventListener('click', () => {
-    document.getElementById('filtroData').value = '';
-    document.getElementById('filtroStatus').value = '';
-    mostrarAgendamentos(database.agendamentos);
+    carregarEMostrarAgendamentos(1, true); // true = resetFilters
+  });
+
+  // Event listeners para paginação
+  document.getElementById('prevPageBtn')?.addEventListener('click', () => {
+    if (currentPage > 1) {
+      carregarEMostrarAgendamentos(currentPage - 1);
+    }
+  });
+
+  document.getElementById('nextPageBtn')?.addEventListener('click', () => {
+    if (currentPage < totalPages) {
+      carregarEMostrarAgendamentos(currentPage + 1);
+    }
   });
 </script>
 
