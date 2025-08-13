@@ -103,6 +103,10 @@
                     <div class="flex justify-between items-center mb-6">
                         <h2 class="text-xl font-bold">Manage Appointments</h2>
                         <div class="flex gap-2">
+                            <button id="novoAgendamentoBtn"
+                                class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors text-sm">
+                                ➕ New Appointment
+                            </button>
                             <button id="limparAgendamentosPassados"
                                 class="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg transition-colors text-sm">
                                 🗑️ Clean Past
@@ -417,6 +421,130 @@
                     <button type="submit"
                         class="flex-1 px-4 py-2 bg-gold hover:bg-darkgold text-black font-semibold rounded-lg transition-colors">
                         Save Changes
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal de Novo Agendamento -->
+    <div id="novoAgendamentoModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-gray-800 rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+            <!-- Header do Modal -->
+            <div class="p-6 border-b border-gray-700">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-xl font-bold text-gold">New Appointment</h2>
+                    <button id="closeNovoAgendamentoModal" class="text-gray-400 hover:text-white">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Formulário de Novo Agendamento -->
+            <form id="novoAgendamentoForm" class="p-6 space-y-4">
+                <!-- Nome -->
+                <div>
+                    <label for="novoNome" class="block text-sm font-medium text-gray-300 mb-2">Name</label>
+                    <input type="text" id="novoNome" required
+                        class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-gold focus:border-transparent text-white">
+                </div>
+
+                <!-- Telefone -->
+                <div>
+                    <label for="novoTelefone" class="block text-sm font-medium text-gray-300 mb-2">Phone</label>
+                    <input type="tel" id="novoTelefone" required
+                        class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-gold focus:border-transparent text-white"
+                        placeholder="(00) 00000-0000">
+                </div>
+
+                <!-- Serviços -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Services</label>
+                    <div id="novoServicosGroup" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <!-- Corte -->
+                        <label class="cursor-pointer">
+                            <input type="checkbox" name="novoServicos" value="Corte Masculino" data-minutos="20" class="peer sr-only">
+                            <div class="w-full rounded-lg border border-gray-600 px-3 py-2 text-sm flex items-center justify-between
+                                hover:border-gold transition-colors
+                                peer-checked:border-gold peer-checked:bg-gold/10">
+                                <span class="font-medium">Corte Masculino</span>
+                                <span class="text-gold font-semibold">20 min</span>
+                            </div>
+                        </label>
+
+                        <!-- Barba & Bigode -->
+                        <label class="cursor-pointer">
+                            <input type="checkbox" name="novoServicos" value="Barba & Bigode" data-minutos="10" class="peer sr-only">
+                            <div class="w-full rounded-lg border border-gray-600 px-3 py-2 text-sm flex items-center justify-between
+                                hover:border-gold transition-colors
+                                peer-checked:border-gold peer-checked:bg-gold/10">
+                                <span class="font-medium">Barba &amp; Bigode</span>
+                                <span class="text-gold font-semibold">10 min</span>
+                            </div>
+                        </label>
+
+                        <!-- Skincare -->
+                        <label class="cursor-pointer">
+                            <input type="checkbox" name="novoServicos" value="Skincare" data-minutos="15" class="peer sr-only">
+                            <div class="w-full rounded-lg border border-gray-600 px-3 py-2 text-sm flex items-center justify-between
+                                hover:border-gold transition-colors
+                                peer-checked:border-gold peer-checked:bg-gold/10">
+                                <span class="font-medium">Skincare</span>
+                                <span class="text-gold font-semibold">15 min</span>
+                            </div>
+                        </label>
+
+                        <!-- Queratina -->
+                        <label class="cursor-pointer">
+                            <input type="checkbox" name="novoServicos" value="Queratina" data-minutos="60" class="peer sr-only">
+                            <div class="w-full rounded-lg border border-gray-600 px-3 py-2 text-sm flex items-center justify-between
+                                hover:border-gold transition-colors
+                                peer-checked:border-gold peer-checked:bg-gold/10">
+                                <span class="font-medium">Queratina</span>
+                                <span class="text-gold font-semibold">1h</span>
+                            </div>
+                        </label>
+                    </div>
+                    <p class="text-xs text-gray-400 mt-1">Select one or more services</p>
+                </div>
+
+                <!-- Data -->
+                <div>
+                    <label for="novoData" class="block text-sm font-medium text-gray-300 mb-2">Date</label>
+                    <input type="date" id="novoData" required
+                        class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-gold focus:border-transparent text-white">
+                </div>
+
+                <!-- Horário -->
+                <div>
+                    <label for="novoHorario" class="block text-sm font-medium text-gray-300 mb-2">Time</label>
+                    <input type="time" id="novoHorario" required
+                        class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-gold focus:border-transparent text-white">
+                </div>
+
+                <!-- Status -->
+                <div>
+                    <label for="novoStatus" class="block text-sm font-medium text-gray-300 mb-2">Status</label>
+                    <select id="novoStatus" required
+                        class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-gold focus:border-transparent text-white">
+                        <option value="pendente">Pending</option>
+                        <option value="confirmado" selected>Confirmed</option>
+                        <option value="cancelado">Canceled</option>
+                        <option value="finalizado">Finished</option>
+                    </select>
+                </div>
+
+                <!-- Botões -->
+                <div class="flex gap-3 pt-4">
+                    <button type="button" id="cancelNovoAgendamentoBtn"
+                        class="flex-1 px-4 py-2 bg-gray-600 hover:bg-gray-500 text-white rounded-lg transition-colors">
+                        Cancel
+                    </button>
+                    <button type="submit"
+                        class="flex-1 px-4 py-2 bg-gold hover:bg-darkgold text-black font-semibold rounded-lg transition-colors">
+                        Create Appointment
                     </button>
                 </div>
             </form>
@@ -1272,6 +1400,111 @@
   }
 
   document.getElementById('agendamentosLista')?.addEventListener('click', handleAgendamentosClick);
+
+  // Gerenciamento do Modal de Novo Agendamento
+  function abrirModalNovoAgendamento() {
+      document.getElementById('novoAgendamentoModal').classList.remove('hidden');
+      document.body.classList.add('overflow-hidden');
+      
+      // Limpar formulário
+      document.getElementById('novoAgendamentoForm').reset();
+      
+      // Definir data mínima como hoje
+      const hoje = new Date().toISOString().split('T')[0];
+      document.getElementById('novoData').min = hoje;
+      
+      // Selecionar "confirmado" por padrão
+      document.getElementById('novoStatus').value = 'confirmado';
+  }
+
+  function fecharModalNovoAgendamento() {
+      document.getElementById('novoAgendamentoModal').classList.add('hidden');
+      document.body.classList.remove('overflow-hidden');
+  }
+
+  // Event listeners do modal de novo agendamento
+  document.getElementById('newAppointmentBtn').addEventListener('click', abrirModalNovoAgendamento);
+  document.getElementById('closeNovoAgendamentoModal').addEventListener('click', fecharModalNovoAgendamento);
+  document.getElementById('cancelNovoAgendamentoBtn').addEventListener('click', fecharModalNovoAgendamento);
+
+  // Fechar modal clicando fora
+  document.getElementById('novoAgendamentoModal').addEventListener('click', (e) => {
+      if (e.target === e.currentTarget) {
+          fecharModalNovoAgendamento();
+      }
+  });
+
+  // Submissão do formulário de novo agendamento
+  document.getElementById('novoAgendamentoForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const nome = document.getElementById('novoNome').value.trim();
+      const telefone = document.getElementById('novoTelefone').value.trim();
+      const data = document.getElementById('novoData').value;
+      const horario = document.getElementById('novoHorario').value;
+      const status = document.getElementById('novoStatus').value;
+
+      // Coletar serviços selecionados
+      const servicosSelecionados = [];
+      const checkboxes = document.querySelectorAll('input[name="novoServicos"]:checked');
+      
+      if (checkboxes.length === 0) {
+          alert('Please select at least one service.');
+          return;
+      }
+
+      checkboxes.forEach(checkbox => {
+          servicosSelecionados.push(checkbox.value);
+      });
+
+      const servicos = servicosSelecionados.join(' + ');
+
+      try {
+          const response = await fetch('http://localhost:3000/agendamentos', {
+              method: 'POST',
+              headers: {
+                  'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                  nome,
+                  telefone,
+                  servicos,
+                  data,
+                  horario,
+                  status
+              })
+          });
+
+          const result = await response.json();
+
+          if (response.ok) {
+              alert('Appointment created successfully!');
+              fecharModalNovoAgendamento();
+              
+              // Recarregar a lista de agendamentos
+              carregarAgendamentosPaginados();
+          } else {
+              alert(result.error || 'Error creating appointment');
+          }
+      } catch (error) {
+          console.error('Error creating appointment:', error);
+          alert('Error creating appointment. Please try again.');
+      }
+  });
+
+  // Máscara para telefone
+  document.getElementById('novoTelefone').addEventListener('input', function(e) {
+      let value = e.target.value.replace(/\D/g, '');
+      
+      if (value.length <= 11) {
+          if (value.length <= 10) {
+              value = value.replace(/(\d{2})(\d{4})(\d{4})/, '($1) $2-$3');
+          } else {
+              value = value.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
+          }
+          e.target.value = value;
+      }
+  });
 
   // Funções do Modal de Edição
   function abrirModalEdicao(agendamento) {
