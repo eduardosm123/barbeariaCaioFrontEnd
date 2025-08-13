@@ -250,6 +250,53 @@
         return horariosOcupados;
     }
 
+    // Nova função para verificar se há tempo suficiente para os serviços selecionados
+    function verificarTempoSuficiente(horarioInicio, servicosSelecionados, horariosDisponiveis, horariosOcupados) {
+        if (!servicosSelecionados || servicosSelecionados.length === 0) {
+            return true; // Se não há serviços selecionados, não precisa verificar
+        }
+        
+        // Mapeamento de serviços para minutos
+        const duracaoServicos = {
+            'Corte Masculino': 20,
+            'Barba & Bigode': 10,
+            'Skincare': 15,
+            'Queratina': 60
+        };
+        
+        // Calcular duração total dos serviços selecionados
+        let duracaoTotal = 0;
+        servicosSelecionados.forEach(servico => {
+            duracaoTotal += duracaoServicos[servico] || 0;
+        });
+        
+        // Converter horário para minutos
+        const [hora, minuto] = horarioInicio.split(':').map(Number);
+        const minutosInicio = hora * 60 + minuto;
+        
+        // Verificar se há tempo suficiente considerando intervalos de 30 minutos
+        const intervalosNecessarios = Math.ceil(duracaoTotal / 30);
+        
+        for (let i = 0; i < intervalosNecessarios; i++) {
+            const minutosSlot = minutosInicio + (i * 30);
+            const horaSlot = Math.floor(minutosSlot / 60);
+            const minutoSlot = minutosSlot % 60;
+            
+            if (horaSlot >= 24) {
+                return false; // Ultrapassa o dia
+            }
+            
+            const horarioFormatado = `${horaSlot.toString().padStart(2, '0')}:${minutoSlot.toString().padStart(2, '0')}`;
+            
+            // Se o horário necessário não está disponível ou está ocupado
+            if (!horariosDisponiveis.includes(horarioFormatado) || horariosOcupados.has(horarioFormatado)) {
+                return false;
+            }
+        }
+        
+        return true;
+    }
+
 
     // Atualiza horários sempre que a data muda
     dataInput.addEventListener('change', async function () {
@@ -259,6 +306,15 @@
 
       if (!dataSelecionada) {
         horarioSelect.innerHTML = '<option value="">Selecione primeiro o dia</option>';
+        return;
+      }
+
+      // Verificar se há serviços selecionados
+      const servicosSelecionados = Array.from(document.querySelectorAll('input[name="servicos"]:checked'))
+          .map(input => input.value);
+      
+      if (servicosSelecionados.length === 0) {
+        horarioSelect.innerHTML = '<option value="">Selecione os serviços primeiro</option>';
         return;
       }
 
@@ -312,12 +368,24 @@
 
             const opt = document.createElement('option');
             opt.value = h;
+            
+            // Verificar se está ocupado
             if (horariosOcupados.has(h)) {
               opt.textContent = `${h} (Ocupado)`;
               opt.disabled = true;
               opt.style.color = '#999';
             } else {
-              opt.textContent = h;
+              // Verificar se há tempo suficiente para os serviços selecionados
+              const servicosSelecionados = Array.from(document.querySelectorAll('input[name="servicos"]:checked'))
+                  .map(input => input.value);
+              
+              if (servicosSelecionados.length > 0 && !verificarTempoSuficiente(h, servicosSelecionados, horarios, horariosOcupados)) {
+                  opt.textContent = `${h} (Tempo insuficiente)`;
+                  opt.disabled = true;
+                  opt.style.color = '#ff6b6b';
+              } else {
+                  opt.textContent = h;
+              }
             }
             horarioSelect.appendChild(opt);
             horariosValidos++;
@@ -328,7 +396,12 @@
             if (isHoje) {
               horarioSelect.innerHTML = '<option value="">Todos os horários de hoje já passaram</option>';
             } else {
-              horarioSelect.innerHTML = '<option value="">Todos os horários estão ocupados</option>';
+              const todosOcupados = horarios.every(h => horariosOcupados.has(h));
+              if (todosOcupados) {
+                horarioSelect.innerHTML = '<option value="">Todos os horários estão ocupados</option>';
+              } else {
+                horarioSelect.innerHTML = '<option value="">Não há horários disponíveis para os serviços selecionados</option>';
+              }
             }
           }
         }
@@ -351,6 +424,12 @@
         cb.addEventListener('change', () => {
           atualizarTempoTotalUI();
           document.getElementById('servicosErro')?.classList.add('hidden');
+          
+          // Recarregar horários disponíveis considerando os serviços selecionados
+          const dataInput = document.getElementById('data');
+          if (dataInput && dataInput.value) {
+            dataInput.dispatchEvent(new Event('change'));
+          }
         });
       });
     });
