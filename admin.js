@@ -1345,7 +1345,7 @@
       // Mapeamento de serviços para minutos
       const duracaoServicos = {
           'Corte Masculino': 20,
-          'Barba & Bigode': 10,
+          'Barba & Bigode': 15,
           'Skincare': 15,
           'Queratina': 60
       };
@@ -1395,7 +1395,7 @@
       // Mapeamento de serviços para minutos
       const duracaoServicos = {
           'Corte Masculino': 20,
-          'Barba & Bigode': 10,
+          'Barba & Bigode': 15,
           'Skincare': 15,
           'Queratina': 60
       };
