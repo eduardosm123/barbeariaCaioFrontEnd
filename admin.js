@@ -464,12 +464,39 @@
       `).join('');
       return `
         <div class="bg-gray-700 rounded-lg p-4">
-          <h3 class="font-semibold text-lg mb-4 text-gold">${d.label}</h3>
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="font-semibold text-lg text-gold">${d.label}</h3>
+            <div class="flex gap-1">
+              <button class="select-day-btn bg-green-600 hover:bg-green-700 text-white px-2 py-1 rounded text-xs transition-colors" 
+                      data-dia="${d.key}" data-action="select">
+                ✓ All
+              </button>
+              <button class="deselect-day-btn bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded text-xs transition-colors" 
+                      data-dia="${d.key}" data-action="deselect">
+                ✗ All
+              </button>
+            </div>
+          </div>
           <div class="space-y-2">${checks}</div>
         </div>
       `;
     }).join('');
     gridRendered = true;
+
+    // Adicionar event listeners para os botões de cada dia
+    document.querySelectorAll('.select-day-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const dia = btn.dataset.dia;
+        document.querySelectorAll(`[data-dia="${dia}"]`).forEach(cb => cb.checked = true);
+      });
+    });
+
+    document.querySelectorAll('.deselect-day-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const dia = btn.dataset.dia;
+        document.querySelectorAll(`[data-dia="${dia}"]`).forEach(cb => cb.checked = false);
+      });
+    });
   }
 
   function marcarCheckboxes() {
