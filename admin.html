@@ -1401,111 +1401,6 @@
 
   document.getElementById('agendamentosLista')?.addEventListener('click', handleAgendamentosClick);
 
-  // Gerenciamento do Modal de Novo Agendamento
-  function abrirModalNovoAgendamento() {
-      document.getElementById('novoAgendamentoModal').classList.remove('hidden');
-      document.body.classList.add('overflow-hidden');
-      
-      // Limpar formulário
-      document.getElementById('novoAgendamentoForm').reset();
-      
-      // Definir data mínima como hoje
-      const hoje = new Date().toISOString().split('T')[0];
-      document.getElementById('novoData').min = hoje;
-      
-      // Selecionar "confirmado" por padrão
-      document.getElementById('novoStatus').value = 'confirmado';
-  }
-
-  function fecharModalNovoAgendamento() {
-      document.getElementById('novoAgendamentoModal').classList.add('hidden');
-      document.body.classList.remove('overflow-hidden');
-  }
-
-  // Event listeners do modal de novo agendamento
-  document.getElementById('newAppointmentBtn').addEventListener('click', abrirModalNovoAgendamento);
-  document.getElementById('closeNovoAgendamentoModal').addEventListener('click', fecharModalNovoAgendamento);
-  document.getElementById('cancelNovoAgendamentoBtn').addEventListener('click', fecharModalNovoAgendamento);
-
-  // Fechar modal clicando fora
-  document.getElementById('novoAgendamentoModal').addEventListener('click', (e) => {
-      if (e.target === e.currentTarget) {
-          fecharModalNovoAgendamento();
-      }
-  });
-
-  // Submissão do formulário de novo agendamento
-  document.getElementById('novoAgendamentoForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-
-      const nome = document.getElementById('novoNome').value.trim();
-      const telefone = document.getElementById('novoTelefone').value.trim();
-      const data = document.getElementById('novoData').value;
-      const horario = document.getElementById('novoHorario').value;
-      const status = document.getElementById('novoStatus').value;
-
-      // Coletar serviços selecionados
-      const servicosSelecionados = [];
-      const checkboxes = document.querySelectorAll('input[name="novoServicos"]:checked');
-      
-      if (checkboxes.length === 0) {
-          alert('Please select at least one service.');
-          return;
-      }
-
-      checkboxes.forEach(checkbox => {
-          servicosSelecionados.push(checkbox.value);
-      });
-
-      const servicos = servicosSelecionados.join(' + ');
-
-      try {
-          const response = await fetch('http://localhost:3000/agendamentos', {
-              method: 'POST',
-              headers: {
-                  'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({
-                  nome,
-                  telefone,
-                  servicos,
-                  data,
-                  horario,
-                  status
-              })
-          });
-
-          const result = await response.json();
-
-          if (response.ok) {
-              alert('Appointment created successfully!');
-              fecharModalNovoAgendamento();
-              
-              // Recarregar a lista de agendamentos
-              carregarAgendamentosPaginados();
-          } else {
-              alert(result.error || 'Error creating appointment');
-          }
-      } catch (error) {
-          console.error('Error creating appointment:', error);
-          alert('Error creating appointment. Please try again.');
-      }
-  });
-
-  // Máscara para telefone
-  document.getElementById('novoTelefone').addEventListener('input', function(e) {
-      let value = e.target.value.replace(/\D/g, '');
-      
-      if (value.length <= 11) {
-          if (value.length <= 10) {
-              value = value.replace(/(\d{2})(\d{4})(\d{4})/, '($1) $2-$3');
-          } else {
-              value = value.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
-          }
-          e.target.value = value;
-      }
-  });
-
   // Funções do Modal de Edição
   function abrirModalEdicao(agendamento) {
     console.log('Função abrirModalEdicao chamada com:', agendamento);
@@ -1743,6 +1638,113 @@
     if (currentPage !== totalPages) {
       carregarEMostrarAgendamentos(totalPages);
     }
+  });
+
+  // ---- MODAL DE NOVO AGENDAMENTO ----
+  
+  // Funções do modal de novo agendamento
+  function abrirModalNovoAgendamento() {
+      document.getElementById('novoAgendamentoModal').classList.remove('hidden');
+      document.body.classList.add('overflow-hidden');
+      
+      // Limpar formulário
+      document.getElementById('novoAgendamentoForm').reset();
+      
+      // Definir data mínima como hoje
+      const hoje = new Date().toISOString().split('T')[0];
+      document.getElementById('novoData').min = hoje;
+      
+      // Selecionar "confirmado" por padrão
+      document.getElementById('novoStatus').value = 'confirmado';
+  }
+
+  function fecharModalNovoAgendamento() {
+      document.getElementById('novoAgendamentoModal').classList.add('hidden');
+      document.body.classList.remove('overflow-hidden');
+  }
+
+  // Event listeners do modal de novo agendamento
+  document.getElementById('novoAgendamentoBtn')?.addEventListener('click', abrirModalNovoAgendamento);
+  document.getElementById('closeNovoAgendamentoModal')?.addEventListener('click', fecharModalNovoAgendamento);
+  document.getElementById('cancelNovoAgendamentoBtn')?.addEventListener('click', fecharModalNovoAgendamento);
+
+  // Fechar modal clicando fora
+  document.getElementById('novoAgendamentoModal')?.addEventListener('click', (e) => {
+      if (e.target === e.currentTarget) {
+          fecharModalNovoAgendamento();
+      }
+  });
+
+  // Submissão do formulário de novo agendamento
+  document.getElementById('novoAgendamentoForm')?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const nome = document.getElementById('novoNome').value.trim();
+      const telefone = document.getElementById('novoTelefone').value.trim();
+      const data = document.getElementById('novoData').value;
+      const horario = document.getElementById('novoHorario').value;
+      const status = document.getElementById('novoStatus').value;
+
+      // Coletar serviços selecionados
+      const servicosSelecionados = [];
+      const checkboxes = document.querySelectorAll('input[name="novoServicos"]:checked');
+      
+      if (checkboxes.length === 0) {
+          alert('Please select at least one service.');
+          return;
+      }
+
+      checkboxes.forEach(checkbox => {
+          servicosSelecionados.push(checkbox.value);
+      });
+
+      const servicos = servicosSelecionados.join(' + ');
+
+      try {
+          const response = await fetch('http://localhost:3000/agendamentos', {
+              method: 'POST',
+              headers: {
+                  'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                  nome,
+                  telefone,
+                  servicos,
+                  data,
+                  horario,
+                  status
+              })
+          });
+
+          const result = await response.json();
+
+          if (response.ok) {
+              alert('Appointment created successfully!');
+              fecharModalNovoAgendamento();
+              
+              // Recarregar a lista de agendamentos
+              carregarAgendamentosPaginados();
+          } else {
+              alert(result.error || 'Error creating appointment');
+          }
+      } catch (error) {
+          console.error('Error creating appointment:', error);
+          alert('Error creating appointment. Please try again.');
+      }
+  });
+
+  // Máscara para telefone
+  document.getElementById('novoTelefone')?.addEventListener('input', function(e) {
+      let value = e.target.value.replace(/\D/g, '');
+      
+      if (value.length <= 11) {
+          if (value.length <= 10) {
+              value = value.replace(/(\d{2})(\d{4})(\d{4})/, '($1) $2-$3');
+          } else {
+              value = value.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
+          }
+          e.target.value = value;
+      }
   });
 
   // ---- BOTÃO FLUTUANTE - VOLTAR AO TOPO ----
