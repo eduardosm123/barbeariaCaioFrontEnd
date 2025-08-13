@@ -250,6 +250,87 @@
         </main>
     </div>
 
+    <!-- Modal de Edição de Agendamento -->
+    <div id="editModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-gray-800 rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+            <!-- Header do Modal -->
+            <div class="p-6 border-b border-gray-700">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-xl font-bold text-gold">Edit Appointment</h2>
+                    <button id="closeEditModal" class="text-gray-400 hover:text-white">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Formulário de Edição -->
+            <form id="editForm" class="p-6 space-y-4">
+                <input type="hidden" id="editAgendamentoId">
+                
+                <!-- Nome -->
+                <div>
+                    <label for="editNome" class="block text-sm font-medium text-gray-300 mb-2">Name</label>
+                    <input type="text" id="editNome" required
+                        class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-gold focus:border-transparent text-white">
+                </div>
+
+                <!-- Telefone -->
+                <div>
+                    <label for="editTelefone" class="block text-sm font-medium text-gray-300 mb-2">Phone</label>
+                    <input type="tel" id="editTelefone" required
+                        class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-gold focus:border-transparent text-white">
+                </div>
+
+                <!-- Serviço -->
+                <div>
+                    <label for="editServico" class="block text-sm font-medium text-gray-300 mb-2">Service</label>
+                    <input type="text" id="editServico" required
+                        class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-gold focus:border-transparent text-white">
+                </div>
+
+                <!-- Data -->
+                <div>
+                    <label for="editData" class="block text-sm font-medium text-gray-300 mb-2">Date</label>
+                    <input type="date" id="editData" required
+                        class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-gold focus:border-transparent text-white">
+                </div>
+
+                <!-- Horário -->
+                <div>
+                    <label for="editHorario" class="block text-sm font-medium text-gray-300 mb-2">Time</label>
+                    <input type="time" id="editHorario" required
+                        class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-gold focus:border-transparent text-white">
+                </div>
+
+                <!-- Status -->
+                <div>
+                    <label for="editStatus" class="block text-sm font-medium text-gray-300 mb-2">Status</label>
+                    <select id="editStatus" required
+                        class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-gold focus:border-transparent text-white">
+                        <option value="pendente">Pending</option>
+                        <option value="confirmado">Confirmed</option>
+                        <option value="cancelado">Canceled</option>
+                        <option value="finalizado">Finished</option>
+                    </select>
+                </div>
+
+                <!-- Botões -->
+                <div class="flex gap-3 pt-4">
+                    <button type="button" id="cancelEditBtn"
+                        class="flex-1 px-4 py-2 bg-gray-600 hover:bg-gray-500 text-white rounded-lg transition-colors">
+                        Cancel
+                    </button>
+                    <button type="submit"
+                        class="flex-1 px-4 py-2 bg-gold hover:bg-darkgold text-black font-semibold rounded-lg transition-colors">
+                        Save Changes
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
  <script>
   const API = 'https://barbeariacaio.onrender.com';
 
@@ -743,7 +824,7 @@
   function criarCardAgendamento(agendamento) {
     const statusInfo = formatarStatus(agendamento.status);
     return `
-      <div class="bg-gray-700 rounded-lg p-4 border border-gray-600" data-agendamento-id="${agendamento.id}">
+      <div class="bg-gray-700 rounded-lg p-4 border border-gray-600" data-agendamento-id="${agendamento._id || agendamento.id}">
         <div class="flex justify-between items-start mb-3">
           <div>
             <h3 class="font-semibold text-lg text-white">${agendamento.nome}</h3>
@@ -770,8 +851,13 @@
         </div>
 
         <div class="flex flex-wrap gap-2">
+          <button class="editar-agendamento-btn bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm transition-colors"
+                  data-agendamento-id="${agendamento._id || agendamento.id}">
+            ✏️ Edit
+          </button>
+          
           <select class="status-select px-2 py-1 bg-gray-600 border border-gray-500 rounded text-white text-sm" 
-                  data-agendamento-id="${agendamento.id}">
+                  data-agendamento-id="${agendamento._id || agendamento.id}">
             <option value="pendente" ${agendamento.status === 'pendente' ? 'selected' : ''}>Pending</option>
             <option value="confirmado" ${agendamento.status === 'confirmado' ? 'selected' : ''}>Confirmed</option>
             <option value="cancelado" ${agendamento.status === 'cancelado' ? 'selected' : ''}>Canceled</option>
@@ -779,12 +865,12 @@
           </select>
           
           <button class="salvar-status-btn bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-sm transition-colors"
-                  data-agendamento-id="${agendamento.id}">
-            💾 Save
+                  data-agendamento-id="${agendamento._id || agendamento.id}">
+            💾 Save Status
           </button>
           
           <button class="excluir-agendamento-btn bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm transition-colors"
-                  data-agendamento-id="${agendamento.id}">
+                  data-agendamento-id="${agendamento._id || agendamento.id}">
             🗑️ Delete
           </button>
         </div>
@@ -826,7 +912,19 @@
   }
 
   function adicionarEventListenersAgendamentos() {
-    // Salvar status
+    // Editar agendamento
+    document.querySelectorAll('.editar-agendamento-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const agendamentoId = e.target.dataset.agendamentoId;
+        const agendamento = database.agendamentos.find(ag => (ag._id || ag.id) === agendamentoId);
+        
+        if (agendamento) {
+          abrirModalEdicao(agendamento);
+        }
+      });
+    });
+
+    // Salvar status (função existente, mas vou atualizar o ID)
     document.querySelectorAll('.salvar-status-btn').forEach(btn => {
       btn.addEventListener('click', async (e) => {
         const agendamentoId = e.target.dataset.agendamentoId;
@@ -849,7 +947,7 @@
       });
     });
 
-    // Excluir agendamento
+    // Excluir agendamento (função existente, mas vou atualizar o ID)
     document.querySelectorAll('.excluir-agendamento-btn').forEach(btn => {
       btn.addEventListener('click', async (e) => {
         const agendamentoId = e.target.dataset.agendamentoId;
@@ -875,6 +973,92 @@
       });
     });
   }
+
+  // Funções do Modal de Edição
+  function abrirModalEdicao(agendamento) {
+    document.getElementById('editAgendamentoId').value = agendamento._id || agendamento.id;
+    document.getElementById('editNome').value = agendamento.nome;
+    document.getElementById('editTelefone').value = agendamento.telefone;
+    document.getElementById('editServico').value = agendamento.servico;
+    document.getElementById('editData').value = agendamento.data;
+    document.getElementById('editHorario').value = agendamento.horario;
+    document.getElementById('editStatus').value = agendamento.status;
+    
+    document.getElementById('editModal').classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function fecharModalEdicao() {
+    document.getElementById('editModal').classList.add('hidden');
+    document.body.style.overflow = 'auto';
+    document.getElementById('editForm').reset();
+  }
+
+  // Event listeners do modal
+  document.getElementById('closeEditModal')?.addEventListener('click', fecharModalEdicao);
+  document.getElementById('cancelEditBtn')?.addEventListener('click', fecharModalEdicao);
+  
+  // Formatação de telefone no modal
+  document.getElementById('editTelefone')?.addEventListener('input', (e) => {
+    const value = e.target.value.replace(/\D/g, '').slice(0, 11);
+    const len = value.length;
+
+    if (len <= 2) {
+      e.target.value = value ? `(${value}` : '';
+    } else if (len <= 6) {
+      e.target.value = `(${value.slice(0, 2)}) ${value.slice(2)}`;
+    } else if (len <= 10) {
+      e.target.value = `(${value.slice(0, 2)}) ${value.slice(2, 6)}-${value.slice(6)}`;
+    } else {
+      e.target.value = `(${value.slice(0, 2)}) ${value.slice(2, 7)}-${value.slice(7, 11)}`;
+    }
+  });
+  
+  // Fechar modal clicando fora
+  document.getElementById('editModal')?.addEventListener('click', (e) => {
+    if (e.target.id === 'editModal') {
+      fecharModalEdicao();
+    }
+  });
+
+  // Fechar modal com ESC
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !document.getElementById('editModal').classList.contains('hidden')) {
+      fecharModalEdicao();
+    }
+  });
+
+  // Submit do formulário de edição
+  document.getElementById('editForm')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const agendamentoId = document.getElementById('editAgendamentoId').value;
+    const dadosAtualizados = {
+      nome: document.getElementById('editNome').value.trim(),
+      telefone: document.getElementById('editTelefone').value.trim(),
+      servico: document.getElementById('editServico').value.trim(),
+      data: document.getElementById('editData').value,
+      horario: document.getElementById('editHorario').value,
+      status: document.getElementById('editStatus').value
+    };
+
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    const originalText = submitBtn.textContent;
+    submitBtn.disabled = true;
+    submitBtn.textContent = '⏳ Salvando...';
+
+    try {
+      await atualizarAgendamento(agendamentoId, dadosAtualizados);
+      mostrarMensagem('Agendamento atualizado com sucesso!', 'success');
+      fecharModalEdicao();
+      carregarEMostrarAgendamentos(); // Recarrega a lista
+    } catch (err) {
+      mostrarMensagem('Erro ao atualizar agendamento: ' + err.message, 'error');
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = originalText;
+    }
+  });
 
   function mostrarMensagem(texto, tipo) {
     const msg = document.getElementById('agendamentosMsg');
