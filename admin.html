@@ -454,9 +454,9 @@
                 <!-- Telefone -->
                 <div>
                     <label for="novoTelefone" class="block text-sm font-medium text-gray-300 mb-2">Phone</label>
-                    <input type="tel" id="novoTelefone" required
+                    <input type="tel" id="novoTelefone" required inputmode="tel"
                         class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-gold focus:border-transparent text-white"
-                        placeholder="(00) 00000-0000">
+                        placeholder="(00) 00000-0000" pattern="^\(\d{2}\) \d{4,5}-\d{4}$" maxlength="15">
                 </div>
 
                 <!-- Serviços -->
@@ -520,8 +520,10 @@
                 <!-- Horário -->
                 <div>
                     <label for="novoHorario" class="block text-sm font-medium text-gray-300 mb-2">Time</label>
-                    <input type="time" id="novoHorario" required
+                    <select id="novoHorario" required
                         class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-gold focus:border-transparent text-white">
+                        <option value="">Select a date first</option>
+                    </select>
                 </div>
 
                 <!-- Status -->
@@ -1733,17 +1735,192 @@
       }
   });
 
-  // Máscara para telefone
-  document.getElementById('novoTelefone')?.addEventListener('input', function(e) {
-      let value = e.target.value.replace(/\D/g, '');
+  // Máscara e validação para telefone (igual ao index.html)
+  const novoTelefoneInput = document.getElementById('novoTelefone');
+  
+  function formatBRPhone(value) {
+      const d = value.replace(/\D/g, '').slice(0, 11); // só números, no máx 11
+      const len = d.length;
+
+      if (!len) return '';
+
+      if (len <= 2) {
+          return `(${d}`;
+      } else if (len <= 6) {
+          return `(${d.slice(0, 2)}) ${d.slice(2)}`;
+      } else if (len <= 10) {
+          return `(${d.slice(0, 2)}) ${d.slice(2, 6)}-${d.slice(6)}`;
+      } else {
+          // 11 dígitos (celular)
+          return `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7, 11)}`;
+      }
+  }
+
+  novoTelefoneInput?.addEventListener('input', (e) => {
+      const cursorEnd = e.target.selectionEnd;
+      const before = e.target.value;
+      e.target.value = formatBRPhone(before);
+      // comportamento simples: mantém o cursor no fim
+      e.target.setSelectionRange(e.target.value.length, e.target.value.length);
+  });
+
+  // mensagem de validação amigável
+  novoTelefoneInput?.addEventListener('blur', (e) => {
+      const ok = /^\(\d{2}\) \d{4,5}-\d{4}$/.test(e.target.value);
+      e.target.setCustomValidity(ok || e.target.value === '' ? '' : 'Digite um telefone válido: (11) 91234-5678');
+  });
+
+  // Sistema de horários disponíveis (baseado no index.html)
+  let horariosCache = null;
+
+  const diasSemana = {
+      'Domingo': 'domingo',
+      'Segunda-feira': 'segunda',
+      'Terça-feira': 'terca',
+      'Quarta-feira': 'quarta',
+      'Quinta-feira': 'quinta',
+      'Sexta-feira': 'sexta',
+      'Sábado': 'sabado'
+  };
+
+  async function carregarHorariosDisponiveis() {
+      if (horariosCache) return horariosCache;
+
+      try {
+          const r = await fetch('http://localhost:3000/horarios', {
+              method: 'GET',
+              headers: { 'Content-Type': 'application/json' }
+          });
+
+          if (!r.ok) throw new Error(`HTTP ${r.status}`);
+
+          const data = await r.json();
+          console.log('📅 Horários carregados do servidor:', data);
+
+          horariosCache = data;
+          return data;
+
+      } catch (error) {
+          console.warn('⚠️ Erro ao carregar horários do servidor:', error);
+          // Fallback
+          horariosCache = {
+              segunda: ['09:00', '10:00', '14:00', '15:00', '16:00'],
+              terca: ['09:00', '10:00', '14:00', '15:00', '16:00'],
+              quarta: ['09:00', '10:00', '14:00', '15:00', '16:00'],
+              quinta: ['09:00', '10:00', '14:00', '15:00', '16:00'],
+              sexta: ['09:00', '10:00', '14:00', '15:00', '16:00'],
+              sabado: ['09:00', '10:00', '14:00'],
+              domingo: []
+          };
+          return horariosCache;
+      }
+  }
+
+  async function carregarAgendamentosPorData(data) {
+      console.log('🔄 Carregando agendamentos para data:', data);
+      try {
+          const r = await fetch('http://localhost:3000/agendamentos', {
+              method: 'GET',
+              headers: { 'Content-Type': 'application/json' }
+          });
+          const todosAgendamentos = await r.json();
+
+          // Filtra apenas os agendamentos confirmados para a data específica
+          const agendamentosConfirmados = todosAgendamentos.filter(ag => 
+              ag.data === data && ag.status === 'confirmado'
+          );
+
+          console.log('✅ Agendamentos confirmados para', data, ':', agendamentosConfirmados);
+          return agendamentosConfirmados;
+      } catch (error) {
+          console.warn('⚠️ Erro ao carregar agendamentos:', error);
+          return [];
+      }
+  }
+
+  // Event listener para mudança de data
+  document.getElementById('novoData')?.addEventListener('change', async function () {
+      console.log('📅 Data selecionada no admin:', this.value);
+      const dataSelecionada = this.value;
+      const horarioSelect = document.getElementById('novoHorario');
+
+      if (!dataSelecionada) {
+          horarioSelect.innerHTML = '<option value="">Select a date first</option>';
+          return;
+      }
+
+      // Descobrir o dia da semana
+      const data = new Date(`${dataSelecionada}T00:00:00`);
+      const nomeDia = data.toLocaleDateString('pt-BR', { weekday: 'long' });
+      const nomeDiaFormatado = nomeDia.charAt(0).toUpperCase() + nomeDia.slice(1);
+      console.log('📆 Dia da semana detectado:', nomeDiaFormatado);
+
+      const diaChave = diasSemana[nomeDiaFormatado];
+      console.log('🔑 Chave do dia:', diaChave);
+
+      const horariosDisponiveis = await carregarHorariosDisponiveis();
+      console.log('⏰ Horários disponíveis para', diaChave, ':', horariosDisponiveis[diaChave]);
+
+      // Carregar agendamentos confirmados para esta data
+      const agendamentosConfirmados = await carregarAgendamentosPorData(dataSelecionada);
+      const horariosOcupados = new Set(agendamentosConfirmados.map(ag => ag.horario));
+      console.log('🚫 Horários ocupados (confirmados):', Array.from(horariosOcupados));
+
+      // Verificar se é hoje para filtrar horários que já passaram
+      const hoje = new Date();
+      const dataAtual = hoje.toISOString().split('T')[0];
+      const horaAtual = hoje.toTimeString().split(' ')[0].substring(0, 5);
+      const isHoje = dataSelecionada === dataAtual;
       
-      if (value.length <= 11) {
-          if (value.length <= 10) {
-              value = value.replace(/(\d{2})(\d{4})(\d{4})/, '($1) $2-$3');
+      console.log('📅 Data atual:', dataAtual, '- Hora atual:', horaAtual);
+      console.log('🗓️ É hoje?', isHoje);
+
+      // Limpar e popular o select
+      horarioSelect.innerHTML = '<option value="">Select a time</option>';
+
+      if (!horariosDisponiveis) {
+          horarioSelect.innerHTML = '<option value="">Error loading schedules</option>';
+          return;
+      }
+
+      if (diaChave && Array.isArray(horariosDisponiveis[diaChave])) {
+          const horarios = horariosDisponiveis[diaChave];
+          if (horarios.length === 0) {
+              horarioSelect.innerHTML = '<option value="">Closed on this day</option>';
           } else {
-              value = value.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
+              let horariosValidos = 0;
+              
+              horarios.forEach(h => {
+                  // Se é hoje, verificar se o horário já passou
+                  if (isHoje && h <= horaAtual) {
+                      console.log('⏰ Horário', h, 'já passou (atual:', horaAtual, ')');
+                      return; // Pula este horário - não adiciona ao select
+                  }
+
+                  const opt = document.createElement('option');
+                  opt.value = h;
+                  if (horariosOcupados.has(h)) {
+                      opt.textContent = `${h} (Occupied)`;
+                      opt.disabled = true;
+                      opt.style.color = '#999';
+                  } else {
+                      opt.textContent = h;
+                  }
+                  horarioSelect.appendChild(opt);
+                  horariosValidos++;
+              });
+
+              // Se nenhum horário válido restou
+              if (horariosValidos === 0) {
+                  if (isHoje) {
+                      horarioSelect.innerHTML = '<option value="">All times for today have passed</option>';
+                  } else {
+                      horarioSelect.innerHTML = '<option value="">All times are occupied</option>';
+                  }
+              }
           }
-          e.target.value = value;
+      } else {
+          horarioSelect.innerHTML = '<option value="">No schedules available</option>';
       }
   });
 
