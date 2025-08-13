@@ -1000,6 +1000,15 @@
       const horariosOcupados = new Set(agendamentosConfirmados.map(ag => ag.horario));
       console.log('🚫 Horários ocupados (confirmados):', Array.from(horariosOcupados));
 
+      // Verificar se é hoje para filtrar horários que já passaram
+      const hoje = new Date();
+      const dataAtual = hoje.toISOString().split('T')[0]; // YYYY-MM-DD
+      const horaAtual = hoje.toTimeString().split(' ')[0].substring(0, 5); // HH:MM
+      const isHoje = dataSelecionada === dataAtual;
+      
+      console.log('📅 Data atual:', dataAtual, '- Hora atual:', horaAtual);
+      console.log('🗓️ É hoje?', isHoje);
+
       // Limpar e popular o select
       horarioSelect.innerHTML = '<option value="">Selecione um horário</option>';
 
@@ -1013,7 +1022,15 @@
         if (horarios.length === 0) {
           horarioSelect.innerHTML = '<option value="">Fechado neste dia</option>';
         } else {
+          let horariosValidos = 0;
+          
           horarios.forEach(h => {
+            // Se é hoje, verificar se o horário já passou
+            if (isHoje && h <= horaAtual) {
+              console.log('⏰ Horário', h, 'já passou (atual:', horaAtual, ')');
+              return; // Pula este horário - não adiciona ao select
+            }
+
             const opt = document.createElement('option');
             opt.value = h;
             if (horariosOcupados.has(h)) {
@@ -1024,7 +1041,17 @@
               opt.textContent = h;
             }
             horarioSelect.appendChild(opt);
+            horariosValidos++;
           });
+
+          // Se nenhum horário válido restou
+          if (horariosValidos === 0) {
+            if (isHoje) {
+              horarioSelect.innerHTML = '<option value="">Todos os horários de hoje já passaram</option>';
+            } else {
+              horarioSelect.innerHTML = '<option value="">Todos os horários estão ocupados</option>';
+            }
+          }
         }
       } else {
         horarioSelect.innerHTML = '<option value="">Sem horários disponíveis</option>';
