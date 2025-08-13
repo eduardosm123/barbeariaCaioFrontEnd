@@ -448,6 +448,8 @@
       const agendamentos = await apiGet('/agendamentos');
       console.log('📋 Agendamentos carregados da API:', agendamentos);
       console.log('📋 Primeiro agendamento (estrutura):', agendamentos[0]);
+      console.log('📋 Tipos de ID dos agendamentos:', agendamentos.map(ag => ({ id: ag.id, tipo: typeof ag.id })));
+      
       database.agendamentos = agendamentos;
       return agendamentos;
     } catch (err) {
@@ -830,7 +832,9 @@
 
   function criarCardAgendamento(agendamento) {
     const statusInfo = formatarStatus(agendamento.status);
-    const agId = agendamento.id; // Usar diretamente o ID da API
+    const agId = String(agendamento.id); // Converter para string sempre
+    console.log('🎯 Criando card para agendamento:', agId, typeof agId, agendamento);
+    
     return `
       <div class="bg-gray-700 rounded-lg p-4 border border-gray-600" data-agendamento-id="${agId}">
         <div class="flex justify-between items-start mb-3">
@@ -922,22 +926,24 @@
     // Editar
     const editBtn = e.target.closest('.editar-agendamento-btn');
     if (editBtn) {
-      const agendamentoId = editBtn.dataset.agendamentoId;
-      console.log('ID clicado para editar:', agendamentoId);
-      console.log('Agendamentos disponíveis:', database.agendamentos);
+      const agendamentoId = String(editBtn.dataset.agendamentoId); // Converter para string
+      console.log('🎯 ID clicado para editar:', agendamentoId, typeof agendamentoId);
+      console.log('🎯 Agendamentos disponíveis:', database.agendamentos.map(ag => ({ id: String(ag.id), tipo: typeof ag.id })));
       
-      const agendamento = database.agendamentos.find(ag => ag.id === agendamentoId);
-      console.log('Agendamento encontrado:', agendamento);
+      // Usar o mesmo padrão que funciona para status - converter ambos para string
+      const agendamento = database.agendamentos.find(ag => String(ag.id) === agendamentoId);
+      console.log('🎯 Agendamento encontrado:', agendamento);
       
       if (agendamento) {
         abrirModalEdicao(agendamento);
       } else {
-        console.error('Agendamento não encontrado com ID:', agendamentoId);
+        console.error('❌ Agendamento não encontrado com ID:', agendamentoId);
+        console.log('❌ IDs disponíveis:', database.agendamentos.map(ag => ({ id: ag.id, tipo: typeof ag.id })));
       }
       return;
     }
 
-    // Salvar status
+    // Salvar status - já funciona
     const saveBtn = e.target.closest('.salvar-status-btn');
     if (saveBtn) {
       const agendamentoId = saveBtn.dataset.agendamentoId;
@@ -964,7 +970,7 @@
       return;
     }
 
-    // Excluir
+    // Excluir - já funciona
     const delBtn = e.target.closest('.excluir-agendamento-btn');
     if (delBtn) {
       const agendamentoId = delBtn.dataset.agendamentoId;
