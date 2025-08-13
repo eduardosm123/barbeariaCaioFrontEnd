@@ -1292,6 +1292,54 @@
       'Domingo': 'domingo'
   };
 
+  // Função para calcular horários ocupados considerando duração dos serviços
+  function calcularHorariosOcupados(agendamentos) {
+      const horariosOcupados = new Set();
+      
+      // Mapeamento de serviços para minutos
+      const duracaoServicos = {
+          'Corte Masculino': 20,
+          'Barba & Bigode': 10,
+          'Skincare': 15,
+          'Queratina': 60
+      };
+      
+      agendamentos.forEach(agendamento => {
+          const horarioInicio = agendamento.horario;
+          let duracaoTotal = 0;
+          
+          // Calcular duração total dos serviços do agendamento
+          if (agendamento.servico) {
+              const servicos = agendamento.servico.split(', ').map(s => s.trim());
+              servicos.forEach(servico => {
+                  duracaoTotal += duracaoServicos[servico] || 0;
+              });
+          }
+          
+          // Converter horário para minutos desde meia-noite
+          const [horaInicio, minutoInicio] = horarioInicio.split(':').map(Number);
+          const minutosInicio = horaInicio * 60 + minutoInicio;
+          
+          // Calcular horários ocupados em intervalos de 30 minutos
+          const intervalos = Math.ceil(duracaoTotal / 30);
+          
+          for (let i = 0; i < intervalos; i++) {
+              const minutosSlot = minutosInicio + (i * 30);
+              const horaSlot = Math.floor(minutosSlot / 60);
+              const minutoSlot = minutosSlot % 60;
+              
+              // Verificar se não ultrapassa 24h
+              if (horaSlot < 24) {
+                  const horarioFormatado = `${horaSlot.toString().padStart(2, '0')}:${minutoSlot.toString().padStart(2, '0')}`;
+                  horariosOcupados.add(horarioFormatado);
+                  console.log(`🚫 Horário ocupado: ${horarioFormatado} (serviço: ${agendamento.servico}, duração: ${duracaoTotal}min)`);
+              }
+          }
+      });
+      
+      return horariosOcupados;
+  }
+
   async function carregarHorariosAgendadosParaData(data) {
       try {
           // Carrega TODOS os agendamentos e filtra localmente
@@ -1345,7 +1393,7 @@
 
       const horariosDisponiveis = database.horarios;
       const agendamentosConfirmados = await carregarHorariosAgendadosParaDataExcluindoAtual(dataSelecionada, agendamentoAtualId);
-      const horariosOcupados = new Set(agendamentosConfirmados.map(ag => ag.horario));
+      const horariosOcupados = calcularHorariosOcupados(agendamentosConfirmados);
 
       // Verificar se é hoje para filtrar horários que já passaram
       const hoje = new Date();
@@ -1419,8 +1467,8 @@
       console.log('⏰ Horários disponíveis para', diaChave, ':', horariosDisponiveis[diaChave]);
       
       const agendamentosConfirmados = await carregarHorariosAgendadosParaData(dataSelecionada);
-      const horariosOcupados = new Set(agendamentosConfirmados.map(ag => ag.horario));
-      console.log('🚫 Horários ocupados (confirmados):', Array.from(horariosOcupados));
+      const horariosOcupados = calcularHorariosOcupados(agendamentosConfirmados);
+      console.log('🚫 Horários ocupados (considerando duração dos serviços):', Array.from(horariosOcupados));
 
       // ADMIN: Permitir agendamentos no passado - não filtrar horários que já passaram
       console.log('👨‍💼 Modo Admin: Permitindo agendamentos em qualquer horário (passado/futuro)');
