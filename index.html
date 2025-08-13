@@ -767,6 +767,14 @@
     </div>
   </div>
 
+  <!-- Botão Flutuante - Voltar ao Topo -->
+  <button id="backToTopBtn" 
+      class="fixed bottom-6 right-6 bg-gold hover:bg-darkgold text-black p-3 rounded-full shadow-lg transition-all duration-300 opacity-0 invisible z-50">
+      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"/>
+      </svg>
+  </button>
+
   <script>
     // -----------------------
     // Constantes WhatsApp + helper
@@ -1297,6 +1305,36 @@
 
     // Pré-carrega horários na cache (opcional)
     carregarHorariosDisponiveis();
+
+    // ---- BOTÃO FLUTUANTE - VOLTAR AO TOPO ----
+    const backToTopBtn = document.getElementById('backToTopBtn');
+    
+    // Função para mostrar/ocultar o botão baseado no scroll
+    function toggleBackToTopButton() {
+      const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+      
+      if (scrollTop > 300) {
+        backToTopBtn.classList.remove('opacity-0', 'invisible');
+        backToTopBtn.classList.add('opacity-100', 'visible');
+      } else {
+        backToTopBtn.classList.add('opacity-0', 'invisible');
+        backToTopBtn.classList.remove('opacity-100', 'visible');
+      }
+    }
+    
+    // Event listener para o scroll
+    window.addEventListener('scroll', toggleBackToTopButton);
+    
+    // Event listener para o clique no botão
+    backToTopBtn?.addEventListener('click', () => {
+      window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+      });
+    });
+    
+    // Verificação inicial
+    toggleBackToTopButton();
   </script>
 
 </body>
