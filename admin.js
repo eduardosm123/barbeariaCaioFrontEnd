@@ -948,6 +948,16 @@
     document.getElementById('editData').value = agendamento.data || '';
     document.getElementById('editStatus').value = agendamento.status || 'pendente';
     
+    // Configurar data mínima como hoje (hora local) para o campo de edição
+    const hoje = new Date();
+    const dataMinima = hoje.getFullYear() + '-' + 
+                      String(hoje.getMonth() + 1).padStart(2, '0') + '-' + 
+                      String(hoje.getDate()).padStart(2, '0');
+    const editDataInput = document.getElementById('editData');
+    if (editDataInput) {
+        editDataInput.min = dataMinima;
+    }
+    
     // Limpar todas as seleções de serviços primeiro
     document.querySelectorAll('input[name="editServicos"]').forEach(checkbox => {
       checkbox.checked = false;
@@ -1178,6 +1188,16 @@
       
       // Limpar formulário
       document.getElementById('novoAgendamentoForm').reset();
+      
+      // Configurar data mínima como hoje (hora local)
+      const hoje = new Date();
+      const dataMinima = hoje.getFullYear() + '-' + 
+                        String(hoje.getMonth() + 1).padStart(2, '0') + '-' + 
+                        String(hoje.getDate()).padStart(2, '0');
+      const dataInput = document.getElementById('novoData');
+      if (dataInput) {
+          dataInput.min = dataMinima;
+      }
       
       // Limpar o select de horários
       const horarioSelect = document.getElementById('novoHorario');
@@ -1499,8 +1519,12 @@
 
       // Verificar se é hoje para filtrar horários que já passaram
       const hoje = new Date();
-      const dataAtual = hoje.toISOString().split('T')[0];
-      const horaAtual = hoje.toTimeString().split(' ')[0].substring(0, 5);
+      // Usar horário local brasileiro para evitar problemas de timezone
+      const dataAtual = hoje.getFullYear() + '-' + 
+                       String(hoje.getMonth() + 1).padStart(2, '0') + '-' + 
+                       String(hoje.getDate()).padStart(2, '0');
+      const horaAtual = String(hoje.getHours()).padStart(2, '0') + ':' + 
+                       String(hoje.getMinutes()).padStart(2, '0');
       const isHoje = dataSelecionada === dataAtual;
 
       horarioSelect.innerHTML = '<option value="">Select a time</option>';
@@ -1515,9 +1539,11 @@
               horariosDoDia.forEach(h => {
                   // Se é hoje, verificar se o horário já passou
                   if (isHoje && h <= horaAtual) {
-                      console.log('⏰ Horário', h, 'já passou (atual:', horaAtual, ')');
+                      console.log('⏰ Horário', h, 'já passou (atual:', horaAtual, ') - DATA:', dataSelecionada, 'vs', dataAtual);
                       return;
                   }
+
+                  console.log('✅ Horário válido:', h, '- Data:', dataSelecionada, '- É hoje?', isHoje);
 
                   const opt = document.createElement('option');
                   opt.value = h;

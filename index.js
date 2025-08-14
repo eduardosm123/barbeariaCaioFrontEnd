@@ -182,7 +182,9 @@
 
     // Definir data mínima como HOJE (hora local)
     const now = new Date();
-    const localISODate = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().split('T')[0];
+    const localISODate = now.getFullYear() + '-' + 
+                        String(now.getMonth() + 1).padStart(2, '0') + '-' + 
+                        String(now.getDate()).padStart(2, '0');
     dataInput.min = localISODate;
 
     function minutosParaTexto(total) {
@@ -341,11 +343,16 @@
 
       // Verificar se é hoje para filtrar horários que já passaram
       const hoje = new Date();
-      const dataAtual = hoje.toISOString().split('T')[0]; // YYYY-MM-DD
-      const horaAtual = hoje.toTimeString().split(' ')[0].substring(0, 5); // HH:MM
+      // Usar horário local brasileiro para evitar problemas de timezone
+      const dataAtual = hoje.getFullYear() + '-' + 
+                       String(hoje.getMonth() + 1).padStart(2, '0') + '-' + 
+                       String(hoje.getDate()).padStart(2, '0');
+      const horaAtual = String(hoje.getHours()).padStart(2, '0') + ':' + 
+                       String(hoje.getMinutes()).padStart(2, '0');
       const isHoje = dataSelecionada === dataAtual;
       
       console.log('📅 Data atual:', dataAtual, '- Hora atual:', horaAtual);
+      console.log('🗓️ Data selecionada:', dataSelecionada);
       console.log('🗓️ É hoje?', isHoje);
 
       // Limpar e popular o select
@@ -366,9 +373,11 @@
           horarios.forEach(h => {
             // Se é hoje, verificar se o horário já passou
             if (isHoje && h <= horaAtual) {
-              console.log('⏰ Horário', h, 'já passou (atual:', horaAtual, ')');
+              console.log('⏰ Horário', h, 'já passou (atual:', horaAtual, ') - DATA:', dataSelecionada, 'vs', dataAtual);
               return; // Pula este horário - não adiciona ao select
             }
+
+            console.log('✅ Horário válido:', h, '- Data:', dataSelecionada, '- É hoje?', isHoje);
 
             const opt = document.createElement('option');
             opt.value = h;
