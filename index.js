@@ -341,7 +341,6 @@
       const horariosOcupados = calcularHorariosOcupados(agendamentosConfirmados);
       console.log('🚫 Horários ocupados (considerando duração dos serviços):', Array.from(horariosOcupados));
 
-      
       // Verificar se é hoje para filtrar horários que já passaram
       const hoje = new Date();
       // Usar horário local brasileiro para evitar problemas de timezone
