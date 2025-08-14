@@ -948,14 +948,10 @@
     document.getElementById('editData').value = agendamento.data || '';
     document.getElementById('editStatus').value = agendamento.status || 'pendente';
     
-    // Configurar data mínima como hoje (hora local) para o campo de edição
-    const hoje = new Date();
-    const dataMinima = hoje.getFullYear() + '-' + 
-                      String(hoje.getMonth() + 1).padStart(2, '0') + '-' + 
-                      String(hoje.getDate()).padStart(2, '0');
+    // ADMIN: Não definir data mínima - permitir edição para qualquer data (passado/futuro)
     const editDataInput = document.getElementById('editData');
     if (editDataInput) {
-        editDataInput.min = dataMinima;
+        editDataInput.removeAttribute('min'); // Remove qualquer restrição de data mínima
     }
     
     // Limpar todas as seleções de serviços primeiro
@@ -1189,14 +1185,10 @@
       // Limpar formulário
       document.getElementById('novoAgendamentoForm').reset();
       
-      // Configurar data mínima como hoje (hora local)
-      const hoje = new Date();
-      const dataMinima = hoje.getFullYear() + '-' + 
-                        String(hoje.getMonth() + 1).padStart(2, '0') + '-' + 
-                        String(hoje.getDate()).padStart(2, '0');
+      // ADMIN: Não definir data mínima - permitir agendamentos no passado
       const dataInput = document.getElementById('novoData');
       if (dataInput) {
-          dataInput.min = dataMinima;
+          dataInput.removeAttribute('min'); // Remove qualquer restrição de data mínima
       }
       
       // Limpar o select de horários
@@ -1537,13 +1529,13 @@
               let horariosValidos = 0;
               
               horariosDoDia.forEach(h => {
-                  // Se é hoje, verificar se o horário já passou
-                  if (isHoje && h <= horaAtual) {
-                      console.log('⏰ Horário', h, 'já passou (atual:', horaAtual, ') - DATA:', dataSelecionada, 'vs', dataAtual);
-                      return;
-                  }
+                  // ADMIN: Comentada validação de horário passado - permitir agendamentos em qualquer horário
+                  // if (isHoje && h <= horaAtual) {
+                  //     console.log('⏰ Horário', h, 'já passou (atual:', horaAtual, ') - DATA:', dataSelecionada, 'vs', dataAtual);
+                  //     return;
+                  // }
 
-                  console.log('✅ Horário válido:', h, '- Data:', dataSelecionada, '- É hoje?', isHoje);
+                  console.log('✅ Horário válido (ADMIN):', h, '- Data:', dataSelecionada, '- É hoje?', isHoje);
 
                   const opt = document.createElement('option');
                   opt.value = h;
