@@ -360,6 +360,7 @@ dataInput.addEventListener('change', async function () {
     const horaAtual = `${parts.hour}:${parts.minute}`;             // HH:mm
     return { dataAtual, horaAtual };
   }
+  const { dataAtual, horaAtual } = dataHoraBrasil();
   const isHoje = dataSelecionada === dataAtual;
 
   console.log('📅 Data atual:', dataAtual, '- Hora atual:', horaAtual);
