@@ -214,9 +214,9 @@ function calcularHorariosOcupados(agendamentos) {
 
   // Mapeamento de serviços para minutos
   const duracaoServicos = {
-    'Corte Masculino': 20,
-    'Barba & Bigode': 15,
-    'Skincare': 15,
+    'Corte Masculino': 30,
+    'Barba & Bigode': 30,
+    'Skincare': 30,
     'Queratina': 60
   };
 
@@ -264,9 +264,9 @@ function verificarTempoSuficiente(horarioInicio, servicosSelecionados, horariosD
 
   // Mapeamento de serviços para minutos
   const duracaoServicos = {
-    'Corte Masculino': 20,
-    'Barba & Bigode': 15,
-    'Skincare': 15,
+    'Corte Masculino': 30,
+    'Barba & Bigode': 30,
+    'Skincare': 30,
     'Queratina': 60
   };
 
