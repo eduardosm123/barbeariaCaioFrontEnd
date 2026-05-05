@@ -582,7 +582,7 @@ document.getElementById('waInfo')?.addEventListener('click', (e) => {
 });
 document.getElementById('waDirections')?.addEventListener('click', (e) => {
   e.preventDefault();
-  enviarWhatsApp('Olá! Preciso de direções para a Barbearia VIP.');
+  enviarWhatsApp('Olá! Preciso de direções para chegar na barbearia no endereço: Av. José Maria de Brito, 1250 - Jardim das Nações, Foz do Iguaçu - PR, 85864-320');
 });
 
 // -----------------------
