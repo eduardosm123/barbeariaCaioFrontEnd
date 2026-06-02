@@ -512,7 +512,7 @@ agendamentoForm.addEventListener('submit', async (e) => {
       servico: servicosSelecionados.join(', '),
       data,
       horario,
-      status: 'confirmado' // Agendamentos feitos pelo index são automaticamente confirmados
+      status: 'pendente' // O horário só é ocupado quando o admin confirmar no painel
     };
 
     console.log('🚀 Dados completos sendo enviados:', JSON.stringify(dadosAgendamento, null, 2));
@@ -527,7 +527,7 @@ agendamentoForm.addEventListener('submit', async (e) => {
       servicos: servicosSelecionados,
       totalMinutos,
       id: agendamentoCriado.id,
-      status: agendamentoCriado.status || 'confirmado' // Usa o status do backend ou confirmado como padrão
+      status: agendamentoCriado.status || 'pendente' // Usa o status do backend ou pendente como padrão
     };
 
     let database = JSON.parse(localStorage.getItem('barbeariaAdmin')) || {};
@@ -547,10 +547,10 @@ agendamentoForm.addEventListener('submit', async (e) => {
       `⏳ *Duração total estimada:* ${minutosParaTexto(totalMinutos)}\n` +
       `📅 *Data:* ${dataFormatada}\n` +
       `⏰ *Horário:* ${horario}\n\n` +
-      `Olá! Gostaria de agendar este horário. Obrigado!`;
+      `Olá! Gostaria de solicitar este horário. Fico no aguardo da confirmação. Obrigado!`;
 
     // Mostra mensagem de sucesso
-    alert('✅ Agendamento realizado com sucesso! Você será redirecionado para o WhatsApp.');
+    alert('✅ Solicitação enviada! Seu horário será confirmado pela barbearia. Você será redirecionado para o WhatsApp.');
 
     enviarWhatsApp(mensagem);
     fecharModal();
