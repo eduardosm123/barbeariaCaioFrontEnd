@@ -127,16 +127,21 @@ async function carregarAgendamentosPorData(data) {
     if (!r.ok) throw new Error(`HTTP ${r.status}`);
     const todosAgendamentos = await r.json();
 
-    // Filtra apenas os agendamentos confirmados para a data específica
-    const agendamentosConfirmados = todosAgendamentos.filter(ag =>
+    // Confirmados = horário realmente preenchido (bloqueia o slot)
+    const confirmados = todosAgendamentos.filter(ag =>
       ag.data === data && ag.status === 'confirmado'
     );
+    // Pendentes = solicitação ainda não confirmada pelo admin (apenas avisa, não bloqueia)
+    const pendentes = todosAgendamentos.filter(ag =>
+      ag.data === data && ag.status === 'pendente'
+    );
 
-    console.log('✅ Agendamentos confirmados para', data, ':', agendamentosConfirmados);
-    return agendamentosConfirmados;
+    console.log('✅ Confirmados para', data, ':', confirmados);
+    console.log('🟡 Pendentes para', data, ':', pendentes);
+    return { confirmados, pendentes };
   } catch (error) {
     console.warn('⚠️ Erro ao carregar agendamentos:', error);
-    return [];
+    return { confirmados: [], pendentes: [] };
   }
 }
 
@@ -336,10 +341,12 @@ dataInput.addEventListener('change', async function () {
   const horariosDisponiveis = await carregarHorariosDisponiveis();
   console.log('⏰ Horários disponíveis para', diaChave, ':', horariosDisponiveis[diaChave]);
 
-  // Carregar agendamentos confirmados para esta data
-  const agendamentosConfirmados = await carregarAgendamentosPorData(dataSelecionada);
-  const horariosOcupados = calcularHorariosOcupados(agendamentosConfirmados);
-  console.log('🚫 Horários ocupados (considerando duração dos serviços):', Array.from(horariosOcupados));
+  // Carregar agendamentos para esta data (confirmados bloqueiam; pendentes só avisam)
+  const { confirmados, pendentes } = await carregarAgendamentosPorData(dataSelecionada);
+  const horariosOcupados = calcularHorariosOcupados(confirmados);
+  const horariosPendentes = calcularHorariosOcupados(pendentes);
+  console.log('🚫 Horários ocupados (confirmados):', Array.from(horariosOcupados));
+  console.log('🟡 Horários com solicitação pendente:', Array.from(horariosPendentes));
 
 
 
@@ -394,7 +401,7 @@ dataInput.addEventListener('change', async function () {
         const opt = document.createElement('option');
         opt.value = h;
 
-        // Verificar se está ocupado
+        // Verificar se está ocupado (confirmado pelo admin)
         if (horariosOcupados.has(h)) {
           opt.textContent = `${h} (Ocupado)`;
           opt.disabled = true;
@@ -408,6 +415,12 @@ dataInput.addEventListener('change', async function () {
             opt.textContent = `${h} (Tempo insuficiente)`;
             opt.disabled = true;
             opt.style.color = '#ff6b6b';
+          } else if (horariosPendentes.has(h)) {
+            // Já existe uma solicitação pendente para este horário.
+            // Avisa o cliente, mas mantém selecionável: o horário só é
+            // preenchido de fato quando o admin confirmar no painel.
+            opt.textContent = `${h} (Aguardando confirmação)`;
+            opt.style.color = '#d4af37';
           } else {
             opt.textContent = h;
           }
