@@ -270,6 +270,7 @@
         showDashboard();
         // Carrega agendamentos se já está logado
         carregarEMostrarAgendamentos();
+        carregarConfirmacoesPendentes();
       }
 
       bootDone = true;
@@ -355,6 +356,7 @@
       
       // Carrega agendamentos após login bem-sucedido
       carregarEMostrarAgendamentos();
+      carregarConfirmacoesPendentes();
     } catch (err) {
       console.error('Erro no login:', err);
       loginError.classList.remove('hidden');
@@ -433,6 +435,11 @@
     
     tabContents.forEach(c => c.classList.add('hidden'));
     document.getElementById(`${tabName}Tab`).classList.remove('hidden');
+
+    // Ao abrir a aba de confirmações, recarrega a lista de pendentes
+    if (tabName === 'confirmacoes') {
+      carregarConfirmacoesPendentes();
+    }
   }
   
   // Event listeners para desktop tabs
@@ -485,66 +492,98 @@
     if (gridRendered) return;
     const grid = document.getElementById('diasGrid');
     grid.innerHTML = dias.map(d => {
-      const checks = slots.map(s => `
-        <div class="flex items-center space-x-2">
-          <input type="checkbox" id="${d.abbr}-${s}" class="horario-checkbox" data-dia="${d.key}" data-horario="${s}">
-          <label for="${d.abbr}-${s}" class="text-sm">${s}</label>
-        </div>
+      const chips = slots.map(s => `
+        <label class="cursor-pointer">
+          <input type="checkbox" id="${d.abbr}-${s}" class="horario-checkbox peer sr-only" data-dia="${d.key}" data-horario="${s}">
+          <span class="block text-center text-xs sm:text-sm rounded-lg py-1.5 px-1 border border-gray-600 bg-gray-800 text-gray-300 select-none transition-all hover:border-gold/60 hover:text-white peer-checked:bg-gold peer-checked:text-black peer-checked:font-semibold peer-checked:border-gold peer-checked:shadow peer-checked:shadow-gold/30 peer-checked:hover:bg-darkgold">
+            ${s}
+          </span>
+        </label>
       `).join('');
       return `
-        <div class="bg-gray-700 rounded-lg p-4">
-          <div class="flex items-center justify-between mb-4">
-            <h3 class="font-semibold text-lg text-gold">${d.label}</h3>
+        <div class="bg-gray-700/60 rounded-xl p-4 border border-gray-600/60 hover:border-gray-500 transition-colors">
+          <div class="flex items-center justify-between mb-3">
+            <div class="flex items-center gap-2">
+              <h3 class="font-semibold text-base text-gold">${d.label}</h3>
+              <span class="day-count text-xs px-2 py-0.5 rounded-full bg-gray-800 text-gray-300 border border-gray-600" data-count-for="${d.key}">0</span>
+            </div>
             <div class="flex gap-1">
-              <button class="select-day-btn bg-green-600 hover:bg-green-700 text-white px-2 py-1 rounded text-xs transition-colors" 
-                      data-dia="${d.key}" data-action="select">
-                ✓ All
-              </button>
-              <button class="deselect-day-btn bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded text-xs transition-colors" 
-                      data-dia="${d.key}" data-action="deselect">
-                ✗ All
-              </button>
+              <button class="select-day-btn w-7 h-7 flex items-center justify-center bg-gray-800 hover:bg-green-600 text-green-400 hover:text-white rounded-md text-xs transition-colors"
+                      data-dia="${d.key}" data-action="select" title="Open all">✓</button>
+              <button class="deselect-day-btn w-7 h-7 flex items-center justify-center bg-gray-800 hover:bg-red-600 text-red-400 hover:text-white rounded-md text-xs transition-colors"
+                      data-dia="${d.key}" data-action="deselect" title="Close all">✗</button>
             </div>
           </div>
-          <div class="space-y-2">${checks}</div>
+          <div class="grid grid-cols-3 sm:grid-cols-4 gap-1.5">${chips}</div>
         </div>
       `;
     }).join('');
     gridRendered = true;
 
-    // Adicionar event listeners para os botões de cada dia
+    // Botões "abrir/fechar todos" de cada dia
     document.querySelectorAll('.select-day-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         const dia = btn.dataset.dia;
-        document.querySelectorAll(`[data-dia="${dia}"]`).forEach(cb => cb.checked = true);
+        document.querySelectorAll(`.horario-checkbox[data-dia="${dia}"]`).forEach(cb => cb.checked = true);
+        atualizarContagens();
       });
     });
 
     document.querySelectorAll('.deselect-day-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         const dia = btn.dataset.dia;
-        document.querySelectorAll(`[data-dia="${dia}"]`).forEach(cb => cb.checked = false);
+        document.querySelectorAll(`.horario-checkbox[data-dia="${dia}"]`).forEach(cb => cb.checked = false);
+        atualizarContagens();
       });
     });
+
+    // Atualiza as contagens ao (des)marcar qualquer horário
+    grid.addEventListener('change', (e) => {
+      if (e.target.classList.contains('horario-checkbox')) atualizarContagens();
+    });
+  }
+
+  // Atualiza o badge de cada dia ("X open" / "Closed") e o total da semana
+  function atualizarContagens() {
+    let total = 0;
+    dias.forEach(d => {
+      const n = document.querySelectorAll(`.horario-checkbox[data-dia="${d.key}"]:checked`).length;
+      total += n;
+      const badge = document.querySelector(`[data-count-for="${d.key}"]`);
+      if (!badge) return;
+      if (n > 0) {
+        badge.textContent = `${n} open`;
+        badge.className = 'day-count text-xs px-2 py-0.5 rounded-full bg-gold/20 text-gold border border-gold/40';
+      } else {
+        badge.textContent = 'Closed';
+        badge.className = 'day-count text-xs px-2 py-0.5 rounded-full bg-red-900/40 text-red-300 border border-red-700/50';
+      }
+    });
+    const totalEl = document.getElementById('totalSlotsCount');
+    if (totalEl) totalEl.textContent = total;
   }
 
   function marcarCheckboxes() {
     if (!database.horarios) return;
-    
+
     Object.keys(database.horarios).forEach(dia => {
       const marcados = new Set(database.horarios[dia] || []);
-      document.querySelectorAll(`[data-dia="${dia}"]`).forEach(cb => {
+      document.querySelectorAll(`.horario-checkbox[data-dia="${dia}"]`).forEach(cb => {
         cb.checked = marcados.has(cb.dataset.horario);
       });
     });
+
+    atualizarContagens();
   }
 
   // Selecionar/Desmarcar todos
   document.getElementById('selectAllBtn').addEventListener('click', () => {
     document.querySelectorAll('.horario-checkbox').forEach(cb => cb.checked = true);
+    atualizarContagens();
   });
   document.getElementById('deselectAllBtn').addEventListener('click', () => {
     document.querySelectorAll('.horario-checkbox').forEach(cb => cb.checked = false);
+    atualizarContagens();
   });
 
   // Salvar horários -> PATCH /horarios
@@ -563,11 +602,11 @@
     try {
       const atualizado = await apiPatch('/horarios', novo);
       database.horarios = atualizado; // mantém em memória
-      saveMsg.textContent = 'Horários salvos com sucesso!';
+      saveMsg.textContent = '✅ Hours saved successfully!';
       saveMsg.className = 'mt-4 p-3 rounded-lg bg-green-900/50 border border-green-500 text-green-200';
     } catch (err) {
       console.error('Erro ao salvar horários:', err);
-      saveMsg.textContent = 'Falha ao salvar horários. Verifique o servidor ou credenciais.';
+      saveMsg.textContent = 'Failed to save hours. Check the server or your credentials.';
       saveMsg.className = 'mt-4 p-3 rounded-lg bg-red-900/50 border border-red-500 text-red-200';
     } finally {
       saveMsg.classList.remove('hidden');
@@ -933,6 +972,135 @@
   }
 
   document.getElementById('agendamentosLista')?.addEventListener('click', handleAgendamentosClick);
+
+  // ---- TELA SEPARADA DE CONFIRMAÇÕES (somente pendentes) ----
+
+  function criarCardConfirmacao(agendamento) {
+    const agId = String(agendamento.id);
+    return `
+      <div class="bg-gray-700 rounded-lg p-4 border border-yellow-600/60" data-agendamento-id="${agId}">
+        <div class="flex justify-between items-start mb-3">
+          <div>
+            <h3 class="font-semibold text-lg text-white">${agendamento.nome}</h3>
+            <p class="text-gray-300 text-sm">${agendamento.telefone}</p>
+          </div>
+          <span class="px-2 py-1 rounded-full text-xs border bg-yellow-900/50 border-yellow-500 text-yellow-200">Pending</span>
+        </div>
+
+        <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-4 text-sm">
+          <div>
+            <span class="text-gray-400">Service:</span>
+            <p class="text-white font-medium">${agendamento.servico}</p>
+          </div>
+          <div>
+            <span class="text-gray-400">Date:</span>
+            <p class="text-white font-medium">${formatarData(agendamento.data)}</p>
+          </div>
+          <div>
+            <span class="text-gray-400">Time:</span>
+            <p class="text-white font-medium">${agendamento.horario}</p>
+          </div>
+        </div>
+
+        <div class="flex flex-wrap gap-2">
+          <button class="confirmar-pendente-btn bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded text-sm font-semibold transition-colors"
+                  data-agendamento-id="${agId}">
+            ✅ Confirm
+          </button>
+          <button class="recusar-pendente-btn bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded text-sm transition-colors"
+                  data-agendamento-id="${agId}">
+            ❌ Reject
+          </button>
+        </div>
+      </div>
+    `;
+  }
+
+  function atualizarBadgePendentes(qtd) {
+    const badge = document.getElementById('pendingCountBadge');
+    const titleCount = document.getElementById('confTitleCount');
+    if (badge) {
+      badge.textContent = qtd;
+      badge.classList.toggle('hidden', qtd <= 0);
+    }
+    if (titleCount) {
+      titleCount.textContent = qtd > 0 ? `(${qtd})` : '';
+    }
+  }
+
+  async function carregarConfirmacoesPendentes() {
+    const lista = document.getElementById('confirmacoesLista');
+    if (!lista) return;
+
+    lista.innerHTML = '<div class="text-center py-8 text-gray-400">Loading...</div>';
+
+    try {
+      const todos = await apiGet('/agendamentos');
+      const pendentes = (todos || [])
+        .filter(ag => ag.status === 'pendente')
+        .sort((a, b) => `${a.data} ${a.horario}`.localeCompare(`${b.data} ${b.horario}`));
+
+      atualizarBadgePendentes(pendentes.length);
+
+      if (pendentes.length === 0) {
+        lista.innerHTML = '<div class="text-center py-8 text-gray-400">No appointments waiting for confirmation 🎉</div>';
+        return;
+      }
+
+      lista.innerHTML = pendentes.map(criarCardConfirmacao).join('');
+    } catch (err) {
+      console.error('Erro ao carregar confirmações pendentes:', err);
+      lista.innerHTML = '<div class="text-center py-8 text-red-400">Error loading pending appointments</div>';
+    }
+  }
+
+  function mostrarMensagemConfirmacoes(texto, tipo) {
+    const msg = document.getElementById('confirmacoesMsg');
+    if (!msg) return;
+    msg.textContent = texto;
+
+    let classes = 'mt-4 p-3 rounded-lg ';
+    if (tipo === 'error') classes += 'bg-red-900/50 border border-red-500 text-red-200';
+    else if (tipo === 'success') classes += 'bg-green-900/50 border border-green-500 text-green-200';
+    else classes += 'bg-blue-900/50 border border-blue-500 text-blue-200';
+
+    msg.className = classes;
+    setTimeout(() => msg.classList.add('hidden'), 4000);
+  }
+
+  async function handleConfirmacoesClick(e) {
+    const confirmBtn = e.target.closest('.confirmar-pendente-btn');
+    const rejectBtn = e.target.closest('.recusar-pendente-btn');
+    const btn = confirmBtn || rejectBtn;
+    if (!btn) return;
+
+    const agendamentoId = btn.dataset.agendamentoId;
+    const novoStatus = confirmBtn ? 'confirmado' : 'cancelado';
+
+    if (rejectBtn && !confirm('Reject this booking? The time slot will stay open for other clients.')) return;
+
+    btn.disabled = true;
+    const originalText = btn.textContent;
+    btn.textContent = '⏳ Saving...';
+
+    try {
+      await atualizarAgendamento(agendamentoId, { status: novoStatus });
+      mostrarMensagemConfirmacoes(
+        confirmBtn
+          ? '✅ Appointment confirmed! The time slot is now filled.'
+          : 'Booking rejected. The slot stays open.',
+        'success'
+      );
+      carregarConfirmacoesPendentes();
+    } catch (err) {
+      mostrarMensagemConfirmacoes('Error: ' + err.message, 'error');
+      btn.disabled = false;
+      btn.textContent = originalText;
+    }
+  }
+
+  document.getElementById('confirmacoesLista')?.addEventListener('click', handleConfirmacoesClick);
+  document.getElementById('recarregarConfirmacoes')?.addEventListener('click', carregarConfirmacoesPendentes);
 
   // Funções do Modal de Edição
   async function abrirModalEdicao(agendamento) {

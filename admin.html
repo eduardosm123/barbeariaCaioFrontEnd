@@ -101,6 +101,9 @@
             data-tab="agendamentos">Appointments</button>
           <button
             class="tab-btn px-4 py-3 text-gray-400 hover:text-white border-b-2 border-transparent hover:border-gray-600"
+            data-tab="confirmacoes">Confirmations <span id="pendingCountBadge" class="hidden ml-1 text-xs font-bold bg-yellow-500 text-gray-900 rounded-full px-2 py-0.5"></span></button>
+          <button
+            class="tab-btn px-4 py-3 text-gray-400 hover:text-white border-b-2 border-transparent hover:border-gray-600"
             data-tab="horarios">Manage Hours</button>
           <button
             class="tab-btn px-4 py-3 text-gray-400 hover:text-white border-b-2 border-transparent hover:border-gray-600"
@@ -111,6 +114,7 @@
         <div class="md:hidden p-4">
           <select id="mobileTabSelect" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white focus:ring-2 focus:ring-gold">
             <option value="agendamentos">📅 Appointments</option>
+            <option value="confirmacoes">✅ Confirmations</option>
             <option value="horarios">⏰ Manage Hours</option>
             <option value="senha">🔒 Change Password</option>
           </select>
@@ -207,25 +211,58 @@
         </div>
       </div>
 
-      <div id="horariosTab" class="tab-content hidden">
+      <div id="confirmacoesTab" class="tab-content hidden">
         <div class="bg-gray-800 rounded-lg p-4 sm:p-6">
-          <h2 class="text-lg sm:text-xl font-bold mb-6">Manage Available Hours</h2>
+          <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 gap-4">
+            <h2 class="text-lg sm:text-xl font-bold">Pending Confirmations <span id="confTitleCount" class="text-gold"></span></h2>
+            <button id="recarregarConfirmacoes"
+              class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg transition-colors text-sm whitespace-nowrap">
+              🔄 Reload
+            </button>
+          </div>
+          <p class="text-gray-400 text-sm mb-6">Review the requests below and click <span class="text-green-400 font-medium">Confirm</span> to fill the time slot. Until you confirm, the slot stays open for other clients.</p>
 
-          <div id="diasGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+          <div id="confirmacoesLista" class="space-y-4">
+            <div class="text-center py-8 text-gray-400">Loading...</div>
           </div>
 
-          <div class="flex flex-col lg:flex-row lg:justify-between mt-8 gap-4">
-            <div class="flex flex-col sm:flex-row gap-2 sm:space-x-4 sm:gap-0">
-              <button id="selectAllBtn"
-                class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors text-sm">Select
-                All</button>
-              <button id="deselectAllBtn"
-                class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors text-sm">Deselect
-                All</button>
+          <div id="confirmacoesMsg" class="mt-4 hidden"></div>
+        </div>
+      </div>
+
+      <div id="horariosTab" class="tab-content hidden">
+        <div class="bg-gray-800 rounded-2xl p-4 sm:p-6 border border-gray-700 shadow-xl">
+          <!-- Header + global actions -->
+          <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4 mb-6">
+            <div>
+              <h2 class="text-lg sm:text-2xl font-bold flex items-center gap-2">
+                <span>🕒</span> Manage Available Hours
+              </h2>
+              <p class="text-gray-400 text-sm mt-1">Tap a time to open or close it. <span class="text-gold font-medium">Gold</span> = open for booking.</p>
             </div>
+            <div class="flex flex-wrap gap-2">
+              <button id="selectAllBtn"
+                class="inline-flex items-center gap-1 bg-gray-700 hover:bg-green-700 text-gray-200 hover:text-white px-3 py-2 rounded-lg transition-colors text-sm">
+                ✓ Select all
+              </button>
+              <button id="deselectAllBtn"
+                class="inline-flex items-center gap-1 bg-gray-700 hover:bg-red-700 text-gray-200 hover:text-white px-3 py-2 rounded-lg transition-colors text-sm">
+                ✗ Clear all
+              </button>
+            </div>
+          </div>
+
+          <div id="diasGrid" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-5">
+          </div>
+
+          <!-- Footer save bar -->
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mt-8 pt-5 border-t border-gray-700">
+            <p class="text-sm text-gray-400">
+              <span id="totalSlotsCount" class="text-gold font-semibold text-base">0</span> open slots this week
+            </p>
             <button id="saveHorariosBtn"
-              class="bg-gold hover:bg-darkgold text-black font-semibold px-6 py-2 rounded-lg transition-colors text-sm">
-              Save Changes
+              class="inline-flex items-center justify-center gap-2 bg-gold hover:bg-darkgold text-black font-semibold px-6 py-2.5 rounded-lg transition-colors text-sm shadow-lg shadow-gold/20">
+              💾 Save Changes
             </button>
           </div>
 
